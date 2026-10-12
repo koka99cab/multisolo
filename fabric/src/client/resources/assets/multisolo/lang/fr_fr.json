@@ -49,5 +49,6 @@
   "multisolo.phrase.line.ore": "Minerai",
   "multisolo.phrase.line.shelter": "Abri",
   "multisolo.phrase.line.jump": "Saut",
-  "multisolo.phrase.line.patience": "Patience"
+  "multisolo.phrase.line.patience": "Patience",
+  "multisolo.vote.lifetime": "%s jours de base. Chaque vote pour ajoute un jour ; chaque vote contre en retire un. Durée totale : entre %s et %s jours depuis la publication."
 }

@@ -3,7 +3,6 @@ package io.github.koka99cab.multisolo.fabric.client;
 import io.github.koka99cab.multisolo.core.message.LocatedMessage;
 import io.github.koka99cab.multisolo.fabric.ExperienceWorlds;
 import io.github.koka99cab.multisolo.fabric.PhantomSignData;
-import java.util.Comparator;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractSignEditScreen;
 import net.minecraft.client.gui.screens.inventory.SignEditScreen;
@@ -21,12 +20,9 @@ public final class PhantomSignMenus {
         if (client.level == null || sign.getLevel() != client.level || !ExperienceWorlds.canShare(client.getSingleplayerServer())) return null;
         LocatedMessage own = ((PhantomSignData) sign).multisolo$message(slot);
         if (own != null && matches(own, sign, slot)) return own;
-        if (!MultisoloClient.SOCIAL.enabled() || sign.getText(slot).hasMessage(client.isTextFilteringEnabled())) return null;
-        return MultisoloClient.SOCIAL.messages().stream().filter(message -> matches(message, sign, slot))
-                .sorted(Comparator.comparingInt((LocatedMessage message) -> {
-                    var view = MultisoloClient.SOCIAL.view(message); return view.downvotes() - view.upvotes();
-                }).thenComparing(Comparator.comparingLong(LocatedMessage::createdAt).reversed()).thenComparing(message -> message.id().toString()))
-                .findFirst().orElse(null);
+        var remote = ((PhantomSignData) sign).multisolo$remote();
+        if (!MultisoloClient.SOCIAL.enabled() || remote == null || !remote.activeAt(System.currentTimeMillis())) return null;
+        return matches(remote.message(), sign, slot) ? remote.message() : null;
     }
     private static boolean matches(LocatedMessage message, SignBlockEntity sign, SignTextSlot slot) {
         var pos = sign.getBlockPos();

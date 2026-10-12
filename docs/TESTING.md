@@ -32,8 +32,14 @@ Ce test ouvre un vrai client et crée une nouvelle expérience depuis le bouton
 du menu. Il contrôle seed 0, difficulté verrouillée malgré un setter forcé,
 partage depuis le menu du panneau vanilla posé, quatre lignes, refus de saisie
 libre, couleur vanilla malgré une ancienne couleur d’auteur, teintures et
-luminosité vanilla, lecture et votes par une seconde identité. Il
-contrôle l’absence d’écriture depuis le menu de consultation et la désactivation.
+luminosité vanilla, lecture et votes par une seconde identité. Il vérifie aussi
+le refus de placer un panneau dans le champ, son placement réel après un regard
+ailleurs, le refus d'écraser une construction ou d'utiliser un support absent et
+l'absence de loot. Il contrôle l'absence d'écriture depuis le menu de consultation,
+la prolongation par upvote, l'expiration après annulation du vote et le retrait
+hors champ. Une copie expirée sauvegardée doit disparaître au rechargement sans
+bloquer le chunk ; le panneau de l'auteur reste intact. Les tests HTTP à horloge
+contrôlée couvrent l'échéance, les votes, les retries et la reprise des archives.
 Il vérifie aussi la sauvegarde/reprise de l’expérience et des métadonnées du panneau,
 ainsi que la lecture des anciennes préférences sans réinitialiser le consentement ou le relais. Les captures vont dans
 `fabric/build/run/clientGameTest/screenshots/`. Un GPU/contexte graphique compatible
@@ -57,6 +63,11 @@ garder `gameplay_ready` à `false` et ne pas annoncer de release complète.
 | Suppression par une autre identité | Refus `403`, message conservé |
 | Panneau ordinaire hors expérience | Menu et saisie vanilla, sans option fantôme |
 | Vote +1, -1, 0 puis redémarrage | Une voix par identité ; vote sur soi refusé |
+| Panneau reçu dans le champ, puis caméra détournée | Aucun placement visible ; copie réelle après une seconde hors champ |
+| Construction, fluide ou support absent au XYZ reçu | Aucun remplacement ni placement invalide |
+| Expiration et votes | Base 7 jours, score net en jours, bornes 1/30, aucune résurrection par vote |
+| Copie expirée encore visible, puis caméra détournée | Retrait différé ; archive relay conservée, panneau d'auteur intact |
+| Copie expirée sauvegardée puis rechargée | Nettoyage avant réception du chunk, sans blocage |
 | Menu FR/EN et petite fenêtre | Boutons lisibles, brouillon conservé après erreur réseau |
 | Autre version, seed, révision, dimension ou worldgen | Aucun mélange de messages, échos ou sessions |
 | Invité : ramassage, dépôt, coffre, craft, XP, blocs, commandes | Refus côté serveur, y compris par paquets directs |

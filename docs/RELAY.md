@@ -71,7 +71,13 @@ connexions. La clé privée ne quitte jamais le poste du joueur. Le relais local
 ne collecte pas de pseudo Microsoft ni de position réelle.
 
 La modération du contenu repose sur le catalogue fermé, validé côté relais.
-Aucun signalement ni envoi Mojang. Les votes ne déclenchent pas de suppression.
+Aucun signalement ni envoi Mojang. Les votes ajustent la durée de présence :
+`7 + upvotes - downvotes` jours depuis publication, entre 1 et 30 jours.
+Les messages expirés quittent les lectures proches et ne sont plus votables,
+mais leurs fichiers et votes restent archivés. Les nouvelles tentatives du même
+UUID et les redémarrages ne renouvellent pas la durée. Aucun site d'archives
+n'est encore fourni. La limite de 10 000 messages inclut les archives : leur
+conservation nécessite donc de surveiller le stockage avant une ouverture publique.
 Les limites par identité ne bloquent pas la création de nouvelles clés ; les
 essais de charge et protections globales restent à évaluer avant ouverture.
 Voir le [protocole](PROTOCOL.md).

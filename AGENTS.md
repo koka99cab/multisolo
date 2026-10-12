@@ -59,5 +59,10 @@ entraide sont ultérieurs. Le support de toutes les versions Java à partir de
 
 Les messages v2 partent d'un panneau vanilla posé, dans son menu natif : quatre
 lignes de catalogue uniquement, rendu couleur vanilla et votes. Aucun chat ni signalement.
-Ne jamais créer de blocs dans les sauvegardes destinataires ; leur panneau
-existant sert uniquement de support de rendu, sans écriture du texte distant.
+Chez le destinataire, créer uniquement des copies temporaires marquées de panneaux
+vanilla, dans de l'air sans fluide et sur un support valide. Ne jamais remplacer
+une construction. Placement et retrait exigent une position hors champ pendant
+une seconde ; nettoyer les copies expirées avant l'envoi d'un chunk rechargé.
+Ces copies ne donnent aucun loot. Ne jamais retirer le panneau posé par l'auteur.
+La durée depuis publication vaut 7 + upvotes - downvotes jours, bornée de 1 à 30 ;
+conserver les archives du relais après expiration. Voir la décision 0004.

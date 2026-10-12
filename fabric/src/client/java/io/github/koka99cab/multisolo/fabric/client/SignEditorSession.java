@@ -12,6 +12,7 @@ import net.fabricmc.fabric.api.client.screen.v1.Screens;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.entity.SignBlockEntity;
@@ -73,8 +74,12 @@ public final class SignEditorSession {
             widgets.add(choices[i]);
         }
         if (readOnly()) {
-            upvote = Button.builder(Component.empty(), button -> vote(1)).bounds(screen.width / 2 - 150, 64, 96, 20).build();
-            downvote = Button.builder(Component.empty(), button -> vote(-1)).bounds(screen.width / 2 - 150, 88, 96, 20).build();
+            var lifetime = Tooltip.create(Component.translatable("multisolo.vote.lifetime",
+                    io.github.koka99cab.multisolo.core.message.MessageLifetime.BASE_DAYS,
+                    io.github.koka99cab.multisolo.core.message.MessageLifetime.MIN_DAYS,
+                    io.github.koka99cab.multisolo.core.message.MessageLifetime.MAX_DAYS));
+            upvote = Button.builder(Component.empty(), button -> vote(1)).bounds(screen.width / 2 - 150, 64, 96, 20).tooltip(lifetime).build();
+            downvote = Button.builder(Component.empty(), button -> vote(-1)).bounds(screen.width / 2 - 150, 88, 96, 20).tooltip(lifetime).build();
             widgets.add(upvote); widgets.add(downvote);
         }
         done = Button.builder(Component.empty(), button -> {
@@ -91,7 +96,7 @@ public final class SignEditorSession {
     }
     private void update() {
         if (mode == null) return;
-        if (readOnly() && (!social().enabled() || !ExperienceWorlds.canShare(client().getSingleplayerServer()))) {
+        if (readOnly() && (!social().enabled() || !social().view(viewed).activeAt(System.currentTimeMillis()) || !ExperienceWorlds.canShare(client().getSingleplayerServer()))) {
             screen.onClose(); return;
         }
         mode.setMessage(Component.translatable(active ? "multisolo.sign.on" : "multisolo.sign.off"));
@@ -137,7 +142,8 @@ public final class SignEditorSession {
     }
     private void publish() {
         if (social().busy()) return;
-        var sign = new PhantomSign(new MessagePhrase(List.of(lines)), PhantomSign.Face.valueOf(editor.multisolo$slot().name()));
+        var sign = new PhantomSign(new MessagePhrase(List.of(lines)), PhantomSign.Face.valueOf(editor.multisolo$slot().name()),
+                io.github.koka99cab.multisolo.fabric.SignPlacements.capture(editor.multisolo$sign().getBlockState()));
         social().publishSign(client(), editor.multisolo$sign(), sign, ok -> {
             if (!ok) { notice = social().errorKey(); return; }
             LocatedMessage message = social().lastPublished();

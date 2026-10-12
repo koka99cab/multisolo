@@ -17,6 +17,7 @@ public final class Multisolo implements ModInitializer {
         var experience = ExperienceCatalog.origin();
         ServerLifecycleEvents.SERVER_STARTING.register(ExperienceWorlds::starting);
         ServerLifecycleEvents.SERVER_STOPPED.register(ExperienceWorlds::stopped);
+        RemoteSigns.initialize();
         LOGGER.info("Multisolo Connected Solitude loaded: {} revision {}, social defaults: {}",
                 experience.id(), experience.revision(), SocialConsent.offline());
     }

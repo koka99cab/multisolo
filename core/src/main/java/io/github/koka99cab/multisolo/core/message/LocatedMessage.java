@@ -6,6 +6,7 @@ import java.util.UUID;
 
 public record LocatedMessage(UUID id, String authorId, CompatibilityKey scope,
                              MessagePosition position, PhantomSign sign, long createdAt) {
+    public static final long LIFETIME_MILLIS = MessageLifetime.BASE_DAYS * MessageLifetime.DAY_MILLIS;
     public LocatedMessage {
         Objects.requireNonNull(id, "id");
         Objects.requireNonNull(scope, "scope");
@@ -16,5 +17,5 @@ public record LocatedMessage(UUID id, String authorId, CompatibilityKey scope,
         Objects.requireNonNull(sign, "sign");
         if (createdAt < 0) throw new IllegalArgumentException("Invalid creation time");
     }
-
+    public boolean activeAt(long now) { return MessageLifetime.activeAt(createdAt, 0, 0, now); }
 }

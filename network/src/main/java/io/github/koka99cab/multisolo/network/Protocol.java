@@ -6,6 +6,7 @@ import io.github.koka99cab.multisolo.core.experience.CompatibilityKey;
 import io.github.koka99cab.multisolo.core.message.LocatedMessage;
 import io.github.koka99cab.multisolo.core.message.MessagePosition;
 import io.github.koka99cab.multisolo.core.message.PhantomSign;
+import io.github.koka99cab.multisolo.core.message.MessageLifetime;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
@@ -32,6 +33,8 @@ public final class Protocol {
             if (upvotes < 0 || downvotes < 0 || upvotes + (long) downvotes > 1000 || ownVote < -1 || ownVote > 1)
                 throw new IllegalArgumentException("Invalid votes");
         }
+        public long expiresAt() { return MessageLifetime.expiresAt(message.createdAt(), upvotes, downvotes); }
+        public boolean activeAt(long now) { return MessageLifetime.activeAt(message.createdAt(), upvotes, downvotes, now); }
     }
     public record Vote(int value) {
         public Vote { if (value < -1 || value > 1) throw new IllegalArgumentException("Vote must be -1, 0 or 1"); }

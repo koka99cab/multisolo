@@ -18,6 +18,7 @@ import java.util.UUID;
 public final class MessageStore {
     private static final int MAX_MESSAGES = 10_000;
     private final Path directory;
+    private final java.time.Clock clock;
     private final Map<UUID, StoredMessage> messages = new HashMap<>();
     private record StoredMessage(int schemaVersion, LocatedMessage message, Map<String, Integer> votes) {
         StoredMessage {
@@ -38,7 +39,11 @@ public final class MessageStore {
     }
 
     public MessageStore(Path directory) throws IOException {
+        this(directory, java.time.Clock.systemUTC());
+    }
+    public MessageStore(Path directory, java.time.Clock clock) throws IOException {
         this.directory = directory;
+        this.clock = java.util.Objects.requireNonNull(clock);
         Files.createDirectories(directory);
         try (var files = Files.list(directory)) {
             for (Path file : files.filter(path -> path.getFileName().toString().endsWith(".json")).toList()) {
@@ -73,11 +78,13 @@ public final class MessageStore {
     }
 
     public synchronized List<Protocol.MessageView> nearby(CompatibilityKey scope, MessagePosition center, String viewer) {
+        long now = clock.millis();
         return messages.values().stream().filter(stored -> scope.canShareWith(stored.message().scope()))
                 .filter(stored -> center.distanceSquared(stored.message().position()) <= Protocol.RADIUS * Protocol.RADIUS)
-                .sorted(Comparator.comparingLong((StoredMessage stored) -> center.distanceSquared(stored.message().position()))
-                        .thenComparing(stored -> stored.message().createdAt()).thenComparing(stored -> stored.message().id().toString()))
-                .limit(50).map(stored -> stored.view(viewer)).toList();
+                .map(stored -> stored.view(viewer)).filter(view -> view.activeAt(now))
+                .sorted(Comparator.comparingLong((Protocol.MessageView view) -> center.distanceSquared(view.message().position()))
+                        .thenComparing(view -> view.message().createdAt()).thenComparing(view -> view.message().id().toString()))
+                .limit(50).toList();
     }
 
     public synchronized boolean delete(UUID id, String author) throws IOException {
@@ -92,7 +99,7 @@ public final class MessageStore {
 
     public synchronized void vote(UUID id, String voter, int value) throws IOException {
         StoredMessage stored = messages.get(id);
-        if (stored == null) throw new MissingException();
+        if (stored == null || !stored.view(voter).activeAt(clock.millis())) throw new MissingException();
         if (stored.message().authorId().equals(voter)) throw new ForbiddenException();
         if (value < -1 || value > 1) throw new IllegalArgumentException("Invalid vote");
         Map<String, Integer> votes = new HashMap<>(stored.votes());

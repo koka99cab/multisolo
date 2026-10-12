@@ -1,6 +1,30 @@
 # Validation — 12 octobre 2026
 
-## Couleur vanilla — 0.1.0-dev.4
+## Panneaux temporaires et durée par les votes — 0.1.0-dev.5
+
+Même cible Minecraft/Java, Windows et vrai client Vulkan :
+
+| Vérification | Résultat |
+| --- | --- |
+| `gradlew.bat build` | Réussi : 22 tests Java et assemblage |
+| `:fabric:runClientGameTest` | Réussi : création, publication native, votes, sauvegarde/rechargement et monde ordinaire |
+| Culling et blocs réels | Aucun placement dans le champ ; vrai panneau après regard détourné, constructions et emplacements sans support conservés |
+| Copies temporaires | Lecture seule native, aucun loot par le chemin vanilla de génération des drops |
+| Votes et échéance | Upvote prolongeant au-delà de sept jours ; annulation ramenant l'échéance dans le passé, retrait physique différé hors champ |
+| Rechargement d'une copie expirée | Nettoyage avant réception du chunk ; aucun blocage et panneau d'auteur conservé |
+| Relais HTTP à horloge contrôlée | Expiration exacte, downvote, refus des votes sur expirés, retries sans renouvellement et archives persistées après redémarrage |
+| Bornes du modèle | Durées de 1 à 30 jours et validation fermée du placement |
+| Scripts | 8 tests Python, vérificateurs dépôt et distribution réussis |
+| Bootstrap dédié | Initialiseur chargé ; arrêt à l'EULA, conservée à false |
+
+Le culling vérifie le frustum, sans détection d'occlusion par les murs. La génération
+des drops est testée directement ; une explosion complète et les variantes murales
+et suspendues restent à essayer en jeu. Les archives restent sur le relais, sans
+site de consultation. Réseau public HTTPS, Docker/VPS et installation du seul JAR
+sur un second poste restent à valider. `gameplay_ready` reste `false` et
+`validated_game_versions` reste vide.
+
+## Historique — couleur vanilla 0.1.0-dev.4
 
 Même cible Minecraft/Java, Windows et vrai client Vulkan :
 

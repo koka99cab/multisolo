@@ -37,6 +37,7 @@ public final class SocialController {
     private long generation;
     private Object lastWorld;
     private List<Protocol.MessageView> views = List.of();
+    private boolean hasSnapshot;
     private long nextRefresh;
     private String errorKey = "";
     private record Context(CompatibilityKey scope, MessagePosition position) {}
@@ -53,7 +54,8 @@ public final class SocialController {
     public boolean enabled() { return settings.messagesEnabled(); }
     public boolean busy() { return busy; }
     public String errorKey() { return errorKey; }
-    public List<LocatedMessage> messages() { return views.stream().map(Protocol.MessageView::message).toList(); }
+    public List<LocatedMessage> messages() { long now = System.currentTimeMillis(); return views.stream().filter(view -> view.activeAt(now)).map(Protocol.MessageView::message).toList(); }
+    public boolean hasSnapshot() { return hasSnapshot; }
     public Protocol.MessageView view(LocatedMessage message) {
         return views.stream().filter(view -> view.message().id().equals(message.id())).findFirst()
                 .orElse(new Protocol.MessageView(message, 0, 0, 0));
@@ -88,6 +90,7 @@ public final class SocialController {
     }
 
     private void cancel() {
+        MultisoloClient.REMOTE_SIGNS.cancelPending();
         generation++;
         if (pending != null) pending.cancel(true);
         RelayClient active = transport;
@@ -96,6 +99,7 @@ public final class SocialController {
         pending = null;
         busy = false;
         views = List.of();
+        hasSnapshot = false;
         nextRefresh = 0;
         retryPublication = null;
         lastPublished = null;
@@ -132,7 +136,7 @@ public final class SocialController {
                     List<Protocol.MessageView> result = operation.run(relay, context);
                     client.execute(() -> {
                         if (generation != requestGeneration) return;
-                        views = result; busy = false;
+                        views = result; hasSnapshot = true; busy = false;
                         finished.accept(true);
                     });
                 }
@@ -156,7 +160,7 @@ public final class SocialController {
         try { current = context(client); }
         catch (IllegalStateException exception) { errorKey = exception.getMessage(); finished.accept(false); return; }
         var pos = block.getBlockPos();
-        if (block.isRemoved() || client.level.getBlockEntity(pos) != block
+        if (block.isRemoved() || ((PhantomSignData) block).multisolo$remote() != null || client.level.getBlockEntity(pos) != block
                 || pos.distToCenterSqr(client.player.position()) > 64) {
             errorKey = "multisolo.error.sign"; finished.accept(false); return;
         }

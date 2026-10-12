@@ -66,13 +66,15 @@ Le partage est réservé aux expériences solo marquées, au profil de mods vér
 et aux datapacks vanilla/Fabric. Les publications et votes sont lancés à la demande du joueur ; les lectures
 sont rafraîchies toutes les dix secondes après consentement,
 hors thread du jeu. Désactiver ou changer de monde annule le travail en cours et
-efface les messages affichés. Le [protocole](PROTOCOL.md) décrit la frontière
+efface le cache de messages ; les copies physiques sont retirées hors champ.
+Le [protocole](PROTOCOL.md) décrit la frontière
 d'autorité du relais.
 
 ## Panneaux vanilla
 
 `MessagePhrase` impose exactement quatre identifiants de catalogue ; `PhantomSign`
-ajoute la face. Le champ RGB historique reste dans le format v2 pour relire les
+ajoute la face et un `SignPlacement` facultatif (type/orientation validés).
+Le champ RGB historique reste dans le format v2 pour relire les
 publications existantes, mais le rendu conserve la teinture et la luminosité
 vanilla du panneau local. Le relais valide le même modèle. Les votes sont
 persistés séparément de la publication immuable, un vote par identité.
@@ -82,4 +84,27 @@ composition séparé. Les mixins client bloquent la saisie libre en mode fantôm
 changent uniquement l'état de rendu du texte et empêchent l'envoi d'un paquet
 vanilla depuis une consultation distante. Le mixin commun sauvegarde les
 métadonnées de l'auteur sur le vrai `SignBlockEntity`. Les raisons de chaque
-mixin sont dans le code et la [décision 0003](decisions/0003-vanilla-phantom-signs.md).
+mixin sont dans le code et les décisions [0003](decisions/0003-vanilla-phantom-signs.md)
+et [0004](decisions/0004-temporary-signs.md).
+
+`RemoteSignController` vérifie le frustum natif sur le thread client. Un volume
+élargi doit rester hors champ 20 ticks, à huit blocs minimum. Des autorisations
+révocables et récentes empêchent une mutation en attente après un changement de
+caméra, de monde ou de consentement. Le serveur intégré applique `RemoteSigns` :
+scope, distance, air, support, bordure et chunks déjà chargés sont revérifiés.
+Il ne génère pas de terrain et borne les copies chargées à 256 par dimension.
+
+`RemoteSignState` sauvegarde identité du message, air initial, comptes des votes
+et retrait demandé sur le bloc. Les copies sont cirées et portent réellement le
+texte du catalogue. Un mixin sur `BlockBehaviour.getDrops` supprime leur loot,
+y compris le chemin utilisé par les explosions ; aucun événement embarqué ne
+permet cette exclusion générale. Les blocs non marqués gardent leurs règles.
+Au chargement, les copies expirées sont retirées directement du chunk fourni,
+avant son envoi, sans redemander son futur FULL encore incomplet.
+
+`MessageLifetime` calcule une durée depuis publication : 7 jours, ajustés par le
+score net, bornés de 1 à 30 jours. `Protocol.MessageView` et `RemoteSignState`
+l'évaluent avec les votes ; `LocatedMessage.activeAt` représente seulement le cas
+sans vote. Le relais filtre les expirés et refuse leurs votes, en conservant leurs
+fichiers. Le client utilise son dernier relevé ; les changements des autres joueurs
+arrivent au rafraîchissement suivant. Aucune échéance n'est renouvelée par une lecture.

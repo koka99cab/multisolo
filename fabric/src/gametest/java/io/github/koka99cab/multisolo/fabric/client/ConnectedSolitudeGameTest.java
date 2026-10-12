@@ -47,6 +47,11 @@ public final class ConnectedSolitudeGameTest implements FabricClientGameTest {
         }));
         context.waitFor(client -> client.level.getBlockEntity(pos) instanceof SignBlockEntity, 200);
     }
+    private static void teleport(ClientGameTestContext context, BlockPos pos) {
+        context.runOnClient(client -> client.getSingleplayerServer().execute(() ->
+                client.getSingleplayerServer().getPlayerList().getPlayers().getFirst().teleportTo(pos.getX() + .5, pos.getY(), pos.getZ() + .5)));
+        context.waitFor(client -> client.player.blockPosition().equals(pos), 200);
+    }
     @Override public void runTest(ClientGameTestContext context) {
         try {
             var invalidSettings = Files.createTempFile("multisolo-settings-test", ".json");
@@ -86,7 +91,10 @@ public final class ConnectedSolitudeGameTest implements FabricClientGameTest {
             if (error.get() != null) throw new AssertionError(error.get());
 
             BlockPos signPosition = context.computeOnClient(client -> client.player.blockPosition().offset(2, 0, 0));
-            try (RelayServer relay = new RelayServer(new InetSocketAddress("127.0.0.1", 0), Files.createTempDirectory("multisolo-relay-test"))) {
+            var relayData = Files.createTempDirectory("multisolo-relay-test");
+            // Backdate posts to test client expiry soon, including a relay with a stale clock.
+            var relayClock = java.time.Clock.offset(java.time.Clock.systemUTC(), java.time.Duration.ofMillis(-LocatedMessage.LIFETIME_MILLIS + 25_000));
+            try (RelayServer relay = new RelayServer(new InetSocketAddress("127.0.0.1", 0), relayData, relayClock)) {
                 relay.start();
                 String endpoint = "http://127.0.0.1:" + relay.port();
                 placeSign(context, signPosition);
@@ -121,17 +129,52 @@ public final class ConnectedSolitudeGameTest implements FabricClientGameTest {
                     var scope = new CompatibilityKey(ExperienceCatalog.origin(), ExperienceWorlds.gameVersion(), Protocol.VERSION, "minecraft:overworld");
                     check(other.nearby(scope, located.position()).size() == 1, "A second identity cannot read the placed sign");
                     other.vote(located.id(), 1);
-                    BlockPos receiverPosition = signPosition.offset(1, 0, 0);
-                    placeSign(context, receiverPosition);
+                    BlockPos receiverPosition = signPosition.offset(-2, 0, 12);
+                    BlockPos occupied = receiverPosition.offset(2, 0, 0), unsupported = receiverPosition.offset(4, 0, 0);
+                    AtomicBoolean prepared = new AtomicBoolean();
+                    context.runOnClient(client -> client.getSingleplayerServer().execute(() -> {
+                        var level = client.getSingleplayerServer().overworld();
+                        level.setBlock(receiverPosition.below(), Blocks.STONE.defaultBlockState(), 3);
+                        level.setBlock(receiverPosition, Blocks.AIR.defaultBlockState(), 3);
+                        level.setBlock(occupied, Blocks.STONE.defaultBlockState(), 3);
+                        level.setBlock(unsupported, Blocks.AIR.defaultBlockState(), 3);
+                        level.setBlock(unsupported.below(), Blocks.AIR.defaultBlockState(), 3);
+                        prepared.set(true);
+                    }));
+                    context.waitFor(client -> prepared.get() && client.level.getBlockState(receiverPosition).isAir(), 200);
+                    var placement = io.github.koka99cab.multisolo.fabric.SignPlacements.capture(Blocks.OAK_SIGN.defaultBlockState());
                     var remote = other.publish(UUID.randomUUID(), scope,
                             new MessagePosition(receiverPosition.getX(), receiverPosition.getY(), receiverPosition.getZ()),
-                            new PhantomSign(MessagePhrase.example(), new SignColor(0xFE1288), PhantomSign.Face.FRONT));
+                            new PhantomSign(MessagePhrase.example(), new SignColor(0xFE1288), PhantomSign.Face.FRONT, placement));
+                    for (var pos : new BlockPos[]{occupied, unsupported}) other.publish(UUID.randomUUID(), scope,
+                            new MessagePosition(pos.getX(), pos.getY(), pos.getZ()), new PhantomSign(MessagePhrase.example(), PhantomSign.Face.FRONT, placement));
+                    context.runOnClient(client -> { client.player.setYRot(0); client.player.setXRot(0); });
+                    context.waitFor(client -> !MultisoloClient.SOCIAL.busy(), 600);
                     AtomicBoolean read = new AtomicBoolean();
                     context.runOnClient(client -> MultisoloClient.SOCIAL.refresh(client, read::set));
                     context.waitFor(client -> read.get(), 600);
+                    context.waitTicks(35);
+                    check(context.computeOnClient(client -> client.gameRenderer.mainCamera().getCullFrustum().isVisible(new net.minecraft.world.phys.AABB(receiverPosition).inflate(2))), "Test target was not in the camera frustum");
+                    check(context.computeOnClient(client -> client.level.getBlockState(receiverPosition).isAir()), "A sign appeared while its location was visible");
+                    context.runOnClient(client -> client.player.setYRot(180));
+                    context.waitFor(client -> client.level.getBlockEntity(receiverPosition) instanceof SignBlockEntity sign && ((PhantomSignData) sign).multisolo$remote() != null, 300);
+                    check(context.computeOnClient(client -> client.level.getBlockState(occupied).is(Blocks.STONE) && client.level.getBlockState(unsupported).isAir()), "Remote placement replaced a block or ignored support");
+                    AtomicBoolean noLoot = new AtomicBoolean();
+                    context.runOnClient(client -> client.getSingleplayerServer().execute(() -> {
+                        var level = client.getSingleplayerServer().overworld(); var block = level.getBlockEntity(receiverPosition);
+                        var params = new net.minecraft.world.level.storage.loot.LootParams.Builder(level)
+                                .withParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.ORIGIN, net.minecraft.world.phys.Vec3.atCenterOf(receiverPosition))
+                                .withParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.TOOL, net.minecraft.world.item.ItemStack.EMPTY)
+                                .withOptionalParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.BLOCK_ENTITY, block);
+                        noLoot.set(level.getBlockState(receiverPosition).getDrops(params).isEmpty());
+                    }));
+                    context.waitFor(client -> noLoot.get(), 100);
+                    teleport(context, receiverPosition.offset(0, 0, -3));
+                    context.runOnClient(client -> { client.player.setYRot(0); client.player.setXRot(0); });
                     context.runOnClient(client -> {
                         var block = (SignBlockEntity) client.level.getBlockEntity(receiverPosition);
                         var original = block.getText(SignTextSlot.FRONT);
+                        check(block.isWaxed() && original.hasMessage(false), "Temporary copy is not a real read-only vanilla sign");
                         var overlay = PhantomSignMenus.display(block, SignTextSlot.FRONT);
                         check(overlay.getMessages(false).getFirst().getString().equals(PhraseText.line(MessagePhrase.Line.BEWARE).getString()), "Preset text was not rendered on the real vanilla sign");
                         check(overlay.getMessages(false).stream().allMatch(line -> line.getStyle().getColor() == null), "Legacy author color overrode vanilla sign text");
@@ -155,12 +198,45 @@ public final class ConnectedSolitudeGameTest implements FabricClientGameTest {
                     context.waitTicks(5);
                     AtomicBoolean unchanged = new AtomicBoolean();
                     context.runOnClient(client -> client.getSingleplayerServer().execute(() -> unchanged.set(
-                            !((SignBlockEntity) client.getSingleplayerServer().overworld().getBlockEntity(receiverPosition)).getText(SignTextSlot.FRONT).hasMessage(false))));
+                            ((SignBlockEntity) client.getSingleplayerServer().overworld().getBlockEntity(receiverPosition)).getText(SignTextSlot.FRONT).getMessages(false).getFirst().getString().equals(PhraseText.line(MessagePhrase.Line.BEWARE).getString()))));
                     context.waitFor(client -> unchanged.get(), 100);
+                    context.waitFor(client -> !remote.activeAt(System.currentTimeMillis()), 700);
+                    context.waitTicks(10);
+                    check(context.computeOnClient(client -> MultisoloClient.SOCIAL.view(remote).activeAt(System.currentTimeMillis()) && client.level.getBlockEntity(receiverPosition) instanceof SignBlockEntity), "Upvote did not extend presence beyond seven days");
+                    context.runOnClient(client -> PhantomSignMenus.openViewer(client, (SignBlockEntity) client.level.getBlockEntity(receiverPosition), SignTextSlot.FRONT, remote));
+                    context.clickScreenButton(context.computeOnClient(client -> net.minecraft.network.chat.Component.translatable("multisolo.vote.up", 1).getString() + " +"));
+                    context.waitFor(client -> !MultisoloClient.SOCIAL.view(remote).activeAt(System.currentTimeMillis()) && client.gui.screen() == null, 600);
+                    check(context.computeOnClient(client -> client.level.getBlockEntity(receiverPosition) instanceof SignBlockEntity), "Expired sign disappeared in view");
+                    teleport(context, receiverPosition.offset(0, 0, -12));
+                    context.runOnClient(client -> client.player.setYRot(180));
+                    context.waitFor(client -> client.level.getBlockState(receiverPosition).isAir(), 300);
+                    check(Files.exists(relayData.resolve(remote.id() + ".json")), "Expiration deleted the relay archive");
                 }
                 context.runOnClient(client -> MultisoloClient.SOCIAL.configure(false, endpoint));
                 check(context.computeOnClient(client -> MultisoloClient.SOCIAL.messages().isEmpty()), "Disabled social retained visible remote messages");
             }
+            // Persist an expired marked copy and verify that chunk loading cleans only that copy.
+            BlockPos cleanupPosition = signPosition.offset(-2, 0, 14);
+            context.setScreen(() -> new MultisoloScreen(new TitleScreen()));
+            AtomicBoolean expiredSaved = new AtomicBoolean();
+            AtomicReference<Throwable> cleanupError = new AtomicReference<>();
+            context.runOnClient(client -> client.getSingleplayerServer().execute(() -> {
+                try {
+                    var level = client.getSingleplayerServer().overworld();
+                    level.setBlock(cleanupPosition.below(), Blocks.STONE.defaultBlockState(), 3);
+                    level.setBlock(cleanupPosition, Blocks.AIR.defaultBlockState(), 3);
+                    var scope = new CompatibilityKey(ExperienceCatalog.origin(), ExperienceWorlds.gameVersion(), Protocol.VERSION, "minecraft:overworld");
+                    var message = new LocatedMessage(UUID.randomUUID(), "a".repeat(64), scope,
+                            new MessagePosition(cleanupPosition.getX(), cleanupPosition.getY(), cleanupPosition.getZ()),
+                            new PhantomSign(MessagePhrase.example(), PhantomSign.Face.FRONT, io.github.koka99cab.multisolo.fabric.SignPlacements.capture(Blocks.OAK_SIGN.defaultBlockState())), System.currentTimeMillis());
+                    check(io.github.koka99cab.multisolo.fabric.RemoteSigns.place(level, new Protocol.MessageView(message, 0, 0, 0), "b".repeat(64)), "Could not prepare persisted copy");
+                    var expired = new LocatedMessage(message.id(), message.authorId(), message.scope(), message.position(), message.sign(), System.currentTimeMillis() - LocatedMessage.LIFETIME_MILLIS);
+                    ((PhantomSignData) level.getBlockEntity(cleanupPosition)).multisolo$remote(new io.github.koka99cab.multisolo.fabric.RemoteSignState(expired, "minecraft:air"));
+                } catch (Throwable failure) { cleanupError.set(failure); }
+                finally { expiredSaved.set(true); }
+            }));
+            context.waitFor(client -> expiredSaved.get(), 200);
+            if (cleanupError.get() != null) throw new AssertionError(cleanupError.get());
             String folder = context.computeOnClient(client -> client.getSingleplayerServer()
                     .getWorldPath(LevelResource.ROOT).normalize().getFileName().toString());
             disconnect(context);
@@ -168,6 +244,7 @@ public final class ConnectedSolitudeGameTest implements FabricClientGameTest {
             context.waitFor(client -> client.player != null && client.gui.screen() == null, 2400);
             check(context.computeOnClient(client -> ExperienceWorlds.connectedSolitude(client.getSingleplayerServer())), "Saved experience did not reload");
             context.waitFor(client -> client.level.getBlockEntity(signPosition) instanceof SignBlockEntity, 600);
+            check(context.computeOnClient(client -> client.level.getBlockState(cleanupPosition).isAir()), "Expired persisted copy survived chunk loading");
             context.runOnClient(client -> {
                 var block = (SignBlockEntity) client.level.getBlockEntity(signPosition);
                 var saved = ((PhantomSignData) block).multisolo$message(SignTextSlot.FRONT);

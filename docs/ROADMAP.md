@@ -24,12 +24,13 @@ Les cases décrivent du travail vérifiable. Elles n'annoncent aucune date.
 - [ ] Choisir le VPS OVH et le domaine, tester le relais HTTPS entre deux machines.
 - [x] Écriture fermée : quatre lignes prédéfinies, validées côté relais, sans signalement.
 - [x] Menu du panneau vanilla, couleur de base et votes persistants.
+- [x] Copies temporaires de vrais panneaux, placement et retrait hors champ sans remplacer les constructions.
+- [x] Présence de 7 jours ajustée par les votes (1 à 30 jours), archives conservées sur le relais.
 - [ ] Tests de charge et quotas globaux avant accès public ouvert.
 
 ## Après v0.1 — Présence asynchrone enrichie
 
-- [x] Rendu du texte sur un panneau vanilla local déjà posé, sans mutation distante.
-- [ ] Politique de conservation et expiration éventuelle avec les premiers retours.
+- [ ] Site de consultation des archives, distinct de leur conservation sur le relais.
 - [ ] Échos visuels sans collision ni influence sur le monde.
 - [ ] Première alpha fermée, retours sur intérêt du concept et fluidité.
 

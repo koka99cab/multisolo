@@ -76,9 +76,23 @@ existe seulement dans une expérience Multisolo compatible. Chaque face peut êt
 partagée séparément. Le panneau de l'auteur conserve son bloc, sa collision et
 les règles vanilla ; ses métadonnées Multisolo sont sauvegardées avec le bloc.
 
-Aucune copie de bloc n'est placée dans les autres sauvegardes. Le rendu du texte
-partagé s'applique à un panneau local vierge déjà posé au même XYZ, sur la même face.
-Le texte local non vide est prioritaire. Le mode de lecture et les votes utilisent
-le même menu vanilla et n'envoient aucun paquet d'édition au serveur Minecraft.
-Si plusieurs messages correspondent, le score des votes puis le plus récent
-choisissent l'affichage ; le menu proche conserve les autres résultats.
+Une copie temporaire du vrai panneau est placée dans les autres sauvegardes,
+au même XYZ avec le type, l'orientation et la face publiés. L'emplacement doit
+être de l'air sans fluide, avec un support valide et des chunks déjà chargés.
+Aucune construction n'est remplacée. Le volume autour du panneau doit rester hors
+du champ de la caméra pendant une seconde, à au moins huit blocs, pour le placement
+comme pour le retrait. Le culling utilise le frustum ; il ne détecte pas un mur
+qui masque un panneau situé dans le champ.
+
+Ces copies marquées sont cirées, consultables et sans loot. Les votes utilisent
+le menu vanilla en lecture seule, sans paquet d'édition. Si plusieurs messages
+visent le même bloc, le score puis la publication la plus récente choisissent le
+panneau ; le menu proche conserve les autres résultats. Une copie cassée localement
+n'est pas replacée pendant la session.
+
+La durée totale depuis publication est `7 + upvotes - downvotes` jours, bornée
+entre 1 et 30 jours. Les lectures et les nouvelles tentatives de publication du
+même UUID ne renouvellent pas l'échéance. L'expiration interdit les votes et retire
+la copie hors champ ; une copie sauvegardée expirée est nettoyée au chargement du
+chunk avant sa réception par le client. Le panneau d'origine reste chez son auteur.
+L'archive du relais reste enregistrée, sans site de consultation pour le moment.

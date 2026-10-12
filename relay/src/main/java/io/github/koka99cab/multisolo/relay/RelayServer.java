@@ -24,13 +24,18 @@ import java.util.concurrent.TimeUnit;
 public final class RelayServer implements AutoCloseable {
     private final HttpServer server;
     private final MessageStore store;
+    private final java.time.Clock clock;
     private final ThreadPoolExecutor workers = new ThreadPoolExecutor(4, 4, 0, TimeUnit.SECONDS,
             new ArrayBlockingQueue<>(128));
     private final Map<String, Window> rates = new HashMap<>();
     private record Window(long startedAt, int count) {}
 
     public RelayServer(InetSocketAddress address, Path directory) throws IOException {
-        store = new MessageStore(directory);
+        this(address, directory, java.time.Clock.systemUTC());
+    }
+    public RelayServer(InetSocketAddress address, Path directory, java.time.Clock clock) throws IOException {
+        this.clock = java.util.Objects.requireNonNull(clock);
+        store = new MessageStore(directory, clock);
         server = HttpServer.create(address, 64);
         server.setExecutor(workers);
         server.createContext("/", this::handle);
@@ -80,7 +85,7 @@ public final class RelayServer implements AutoCloseable {
                     } else if (!voting && "PUT".equals(method)) {
                         Protocol.Publish request = Protocol.JSON.fromJson(new String(body, StandardCharsets.UTF_8), Protocol.Publish.class);
                         validateScope(request.scope());
-                        respond(exchange, 200, Protocol.JSON.toJson(store.publish(id, author, request, System.currentTimeMillis())));
+                        respond(exchange, 200, Protocol.JSON.toJson(store.publish(id, author, request, clock.millis())));
                     } else if (!voting && "DELETE".equals(method) && body.length == 0) {
                         respond(exchange, store.delete(id, author) ? 200 : 403, "{}");
                     } else respond(exchange, 405, "{}");

@@ -26,7 +26,7 @@ position. Ne pas utiliser ces messages pour classer ou certifier une progression
 | --- | --- |
 | `GET /health` | État et numéro de protocole, sans authentification |
 | `PUT /v2/messages/{uuid}` | Publier ; même UUID et contenu = même message, sans doublon |
-| `GET /v2/messages?scope=…&x=…&y=…&z=…` | Lire jusqu'à 50 messages à 128 blocs |
+| `GET /v2/messages?scope=…&x=…&y=…&z=…` | Lire jusqu'à 50 messages actifs à 128 blocs |
 | `PUT /v2/messages/{uuid}/vote` | Voter +1, -1 ou annuler (0) |
 | `DELETE /v2/messages/{uuid}` | Supprimer un message dont on possède l'identité auteur |
 
@@ -36,7 +36,7 @@ Corps PUT (exemple) :
 {
   "scope": {"experience": {"id":"multisolo:origin","revision":2,"seed":0,"difficulty":"NORMAL","worldgenMods":{}},"minecraftVersion":"26.4-snapshot-3","protocolVersion":2,"dimension":"minecraft:overworld"},
   "position": {"x":0,"y":64,"z":0},
-  "sign": {"phrase":{"lines":["BEWARE","LAVA","BUT","TREASURE"]},"color":{"rgb":0},"face":"FRONT"}
+  "sign": {"phrase":{"lines":["BEWARE","LAVA","BUT","TREASURE"]},"color":{"rgb":0},"face":"FRONT","placement":{"block":"minecraft:oak_sign","properties":{"rotation":"0","waterlogged":"false"}}}
 }
 ```
 
@@ -47,6 +47,13 @@ traductions sont locales au client. Le champ historique `color.rgb` reste valid�
 entre 0 et 16777215 pour conserver le format v2 et les publications déjà stockées.
 Depuis dev.4, les nouvelles publications l'émettent à 0 et le client ignore toute
 couleur reçue : le panneau utilise sa teinture et sa luminosité vanilla.
+Depuis dev.5, `sign.placement` décrit le type et l'orientation. Il reste facultatif
+pour lire les anciens fichiers v2 : sans lui, le message reste consultable dans
+le menu proche, mais aucun bloc n'est deviné ou placé. Seuls les panneaux vanilla
+des douze essences reconnues sont acceptés. Propriétés exactes : `rotation` de 0
+à 15 pour les panneaux au sol et suspendus au plafond, `facing` horizontal pour
+les panneaux muraux ; `attached` booléen uniquement au plafond ; `waterlogged`
+doit toujours être `false`. Aucun bloc arbitraire ni eau n'est copié.
 Dans ce protocole Java, la seed est un entier long ; le catalogue interopérable
 du dépôt la conserve comme chaîne. La seule seed acceptée ici est zéro.
 
@@ -57,6 +64,15 @@ Réponse PUT : `LocatedMessage` (`id`, `authorId`, `scope`, `position`, `sign`,
 Corps vote : `{"value":1}`, `{"value":-1}` ou `{"value":0}`. Une seule voix par
 identité, modifiable et annulable ; le vote sur ses propres messages est refusé.
 Les comptes et votes survivent au redémarrage. Maximum 1000 votants par message.
+
+La durée active est `clamp(7 + upvotes - downvotes, 1, 30)` jours depuis
+`createdAt` (un jour = 86 400 000 ms). À l'échéance exacte, le message est expiré :
+absent des lectures proches et votes refusés avec `404`. Un vote peut avancer
+l'échéance jusque dans le passé. Les expirés ne peuvent pas être réactivés par
+un nouveau vote. Le même UUID publié à nouveau conserve son `createdAt` initial.
+L'archive et ses votes restent sur disque ; seule une suppression explicite
+les efface. Le délai est calculé depuis les comptes déjà présents dans la réponse,
+sans nouveau champ JSON ni changement de numéro de protocole.
 
 Hors `/health`, les requêtes portent `X-Multisolo-Key` (clé X.509 en Base64),
 `X-Multisolo-Time` (millisecondes Unix) et `X-Multisolo-Signature` (Base64 Ed25519).
@@ -83,10 +99,10 @@ Les échanges exigent l'égalité de tous les champs du scope.
 
 - 8 Kio par requête, 128 Kio par réponse client, exactement quatre lignes de catalogue.
 - 120 requêtes et 10 mutations par minute par identité.
-- 10 000 messages maximum sur le relais ; `507` lorsque le stockage est plein.
-- Aucun effacement automatique ni TTL ; suppression explicite de l'auteur ou
-  de l'opérateur du relais. Un redémarrage recharge les fichiers persistés.
-- `400` invalide, `401` signature/heure, `403` autre auteur ou vote sur soi, `404` message absent pour un vote, `409` conflit UUID,
+- 10 000 messages maximum, archives expirées comprises ; `507` lorsque le stockage est plein.
+- Expiration de la présence, sans effacement automatique des fichiers. Un
+  redémarrage recharge les archives sans renouveler les échéances.
+- `400` invalide, `401` signature/heure, `403` autre auteur ou vote sur soi, `404` message absent ou expiré pour un vote, `409` conflit UUID,
   `413` corps trop grand, `429` limite, `500` erreur disque/service.
 
 Une identité peut être recréée : une voix n'est pas un compte Minecraft vérifié.

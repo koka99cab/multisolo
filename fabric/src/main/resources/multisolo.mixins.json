@@ -4,7 +4,8 @@
   "compatibilityLevel": "JAVA_25",
   "mixins": [
     "ExperienceDifficultyMixin",
-    "PhantomSignDataMixin"
+    "PhantomSignDataMixin",
+    "RemoteSignDropsMixin"
   ],
   "injectors": {
     "defaultRequire": 1

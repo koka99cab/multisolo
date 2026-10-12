@@ -49,5 +49,6 @@
   "multisolo.phrase.line.ore": "Ore",
   "multisolo.phrase.line.shelter": "Shelter",
   "multisolo.phrase.line.jump": "Jump",
-  "multisolo.phrase.line.patience": "Patience"
+  "multisolo.phrase.line.patience": "Patience",
+  "multisolo.vote.lifetime": "%s days by default. Each upvote adds one day; each downvote removes one day. Total lifetime: between %s and %s days from publication."
 }

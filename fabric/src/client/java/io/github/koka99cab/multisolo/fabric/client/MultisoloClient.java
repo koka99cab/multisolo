@@ -11,6 +11,7 @@ import net.minecraft.network.chat.Component;
 
 public final class MultisoloClient implements ClientModInitializer {
     public static final SocialController SOCIAL = new SocialController();
+    public static final RemoteSignController REMOTE_SIGNS = new RemoteSignController();
     @Override public void onInitializeClient() {
         ScreenEvents.AFTER_INIT.register((client, screen, width, height) -> {
             if (screen instanceof TitleScreen || screen instanceof PauseScreen) {
@@ -19,6 +20,6 @@ public final class MultisoloClient implements ClientModInitializer {
                         .bounds(8, 8, 90, 20).build());
             }
         });
-        ClientTickEvents.END_CLIENT_TICK.register(client -> SOCIAL.checkWorld(client));
+        ClientTickEvents.END_CLIENT_TICK.register(client -> { SOCIAL.checkWorld(client); REMOTE_SIGNS.tick(client); });
     }
 }

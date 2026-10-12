@@ -2,6 +2,9 @@
 
 Statut : accepté, 12 octobre 2026.
 
+Le support de lecture sans copie et l'absence d'expiration décrits ci-dessous
+sont remplacés en dev.5 par la [décision 0004](0004-temporary-signs.md).
+
 Le chat est abandonné. Le joueur pose un vrai panneau vanilla et sélectionne
 le mode fantôme dans son menu habituel, uniquement dans Multisolo. Il compose
 quatre lignes dans un catalogue fermé. Le relais refuse toute ligne inconnue,

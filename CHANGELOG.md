@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.0-dev.5 — Panneaux temporaires et votes
+
+- Copies de vrais panneaux vanilla au même XYZ, avec leur type et leur orientation.
+- Placement et retrait après une seconde hors du champ de la caméra, à huit blocs minimum.
+- Air libre et support valide requis ; constructions intactes, copies cirées et sans loot.
+- Durée depuis publication : 7 + upvotes − downvotes jours, bornée de 1 à 30 jours.
+- Archives du relais conservées après expiration ; aucun vote pour réactiver un expiré.
+- Nettoyage des copies expirées au rechargement ; panneau d'origine de l'auteur conservé.
+- Placement facultatif dans le protocole v2 : archives anciennes lisibles sans bloc deviné.
+
 ## 0.1.0-dev.4 — Couleur vanilla
 
 - Retrait du choix hexadécimal et de son écran de préférences.

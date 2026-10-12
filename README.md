@@ -28,7 +28,7 @@ dans le menu Multisolo ; les règles d'une expérience restent communes.
 
 ## État réel du projet
 
-**v0.1 — Connected Solitude**, en développement (`0.1.0-dev.4`).
+**v0.1 — Connected Solitude**, en développement (`0.1.0-dev.5`).
 La seed de cette première expérience est **`0`**. Chaque joueur crée une
 sauvegarde indépendante, en survie normale verrouillée, avec le spawn vanilla.
 
@@ -71,13 +71,22 @@ panneau vanilla**, puis choisir « Panneau fantôme : oui » dans son menu habit
 Composer ses **quatre lignes prédéfinies** avec les flèches, puis « Partager ce
 panneau ». Échap annule le brouillon ; un panneau ordinaire garde son texte libre local.
 
-Le bloc posé reste un panneau Minecraft normal. Aucun bloc n'est créé à distance.
-Chez un autre joueur, la lecture dans le monde utilise un **panneau vanilla déjà
-posé, vierge, aux mêmes coordonnées et sur la même face**. Son texte sauvegardé
-reste intact. Accroupi + clic droit, mains vides, ouvre le menu vanilla en lecture
-seule avec les votes pour / contre. Le menu « Panneaux proches » permet aussi de
-consulter les messages, même sans panneau correspondant. Recliquer un vote l'annule ;
-un auteur peut supprimer son partage, sans casser son panneau.
+Le bloc posé reste un panneau Minecraft normal. Chez un autre joueur, Multisolo
+place une **copie temporaire du panneau vanilla**, au même endroit, avec son type
+et son orientation. Il faut de l'air libre et un support valide : aucune construction
+n'est remplacée. Le panneau apparaît ou disparaît seulement hors du champ de la
+caméra pendant une seconde, à au moins huit blocs. Ces copies sont en lecture seule
+et ne donnent aucun loot. Accroupi + clic droit, mains vides, ouvre le menu vanilla
+avec les votes pour / contre. Le menu « Panneaux proches » conserve aussi les
+messages sans emplacement disponible. Recliquer un vote l'annule ; un auteur peut
+supprimer son partage sans casser son panneau d'origine.
+
+La présence dure **7 jours + 1 jour par upvote − 1 jour par downvote**, avec un
+minimum de **1 jour** et un maximum de **30 jours depuis la publication**.
+Les votes positifs donnent donc plus de persistance aux indications utiles.
+Une expiration retire la copie lorsqu'elle est hors champ, sans effacer l'archive
+sur le relais. Un message expiré ne peut plus recevoir de votes. Aucun site
+d'archives n'est encore fourni.
 
 Le partage porte uniquement des identifiants de phrases prédéfinies ; le relais
 refuse le texte libre. Aucun message social n'est envoyé au chat et aucun
