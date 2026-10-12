@@ -10,6 +10,17 @@
     "target_series": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+$"},
     "update_channel": {"enum": ["stable", "preview"]},
     "protocol_version": {"type": "integer", "minimum": 1},
+    "release_name": {"type": "string"},
+    "support_goal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimum_java_edition", "policy", "cross_version_messages"],
+      "properties": {
+        "minimum_java_edition": {"const": "26.1"},
+        "policy": {"const": "separately_verified_builds"},
+        "cross_version_messages": {"const": false}
+      }
+    },
     "stage": {"enum": ["foundation", "alpha", "beta", "stable"]},
     "gameplay_ready": {"type": "boolean"},
     "validated_game_versions": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},

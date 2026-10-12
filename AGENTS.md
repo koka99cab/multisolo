@@ -17,8 +17,10 @@ correspondant au travail : `docs/ARCHITECTURE.md` ou `docs/MAINTENANCE.md`.
 ## Frontières du code
 
 - `core` : Java pur, pas d'import `net.minecraft`, `net.fabricmc` ou de réseau.
+- `network` : identité, protocole et client HTTP sans dépendance au jeu.
+- `relay` : service autonome et stockage des messages ; jamais embarqué dans le mod.
 - `fabric/src/main` : adaptateur serveur/commun ; aucune classe client ici.
-- `fabric/src/client` : futur rendu et menu ; ne pas créer de faux écran fonctionnel.
+- `fabric/src/client` : menu et consentement ; aucune requête sur le thread du jeu.
 - `fabric/src/main/resources/data/multisolo/experiences` : catalogue embarqué.
 - Ne pas ajouter de mixin sans expliquer pourquoi un événement/API ne suffit pas.
 - Préférer les modules Fabric API strictement nécessaires, embarqués par Loom,
@@ -49,3 +51,8 @@ Préserver le format du protocole et des sauvegardes ou documenter leur migratio
 
 Documentation et échanges : français. Identifiants de code et commits : anglais.
 Garder le README honnête sur ce qui est réellement jouable.
+
+La v0.1 « Connected Solitude » fixe la seed 0 (origine révision 2), le spawn
+vanilla, l'identité réseau et les messages persistants géolocalisés. Échos et
+entraide sont ultérieurs. Le support de toutes les versions Java à partir de
+26.1 est un objectif ; ne pas élargir le manifeste sans valider chaque portage.

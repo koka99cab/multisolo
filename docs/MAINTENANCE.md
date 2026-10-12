@@ -43,6 +43,8 @@ Un échec réseau fait échouer la veille ; il ne signifie pas « aucune mise à
 Au départ, maintenir la cible actuelle. Pour supporter plusieurs versions,
 ajouter une branche de maintenance par ligne réellement incompatible et une
 matrice CI. Ne pas promettre toutes les anciennes versions avant leur validation.
+L'objectif arrêté pour Multisolo couvre **Java 26.1 et les versions suivantes**.
+Le format des messages sépare les versions exactes même après ces portages.
 
 ## Préparer une release
 

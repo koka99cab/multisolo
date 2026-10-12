@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "multisolo-test",
+  "version": "1.0.0",
+  "name": "Multisolo client tests",
+  "environment": "client",
+  "entrypoints": {
+    "fabric-client-gametest": ["io.github.koka99cab.multisolo.fabric.client.ConnectedSolitudeGameTest"]
+  }
+}

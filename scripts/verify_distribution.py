@@ -27,12 +27,26 @@ def main():
         require("io/github/koka99cab/multisolo/core/assistance/GuestPolicy.class" in names,
                 "Core is missing from the single player JAR")
         require("data/multisolo/experiences/origin.json" in names, "Experience is missing")
+        experience = json.loads(jar.read("data/multisolo/experiences/origin.json"))
+        require(experience["seed"] == "0" and experience["revision"] == 2, "Incorrect experience in JAR")
+        require("io/github/koka99cab/multisolo/network/NetworkIdentity.class" in names, "Network is missing")
+        nested_ids = set()
+        import io
+        for entry in manifest.get("jars", []):
+            with zipfile.ZipFile(io.BytesIO(jar.read(entry["file"]))) as nested:
+                nested_manifest = json.loads(nested.read("fabric.mod.json"))
+                nested_ids.add(nested_manifest["id"])
+                require(any("LICENSE" in name.upper() for name in nested.namelist()), "Nested license missing")
+        require(nested_ids == {"fabric-api-base", "fabric-lifecycle-events-v1", "fabric-screen-api-v1", "fabric-resource-loader-v1"},
+                f"Unexpected bundled modules: {nested_ids}")
+        require("assets/multisolo/lang/fr_fr.json" in names, "Client resources are missing")
+        require(not any("gametest" in name.lower() for name in names), "Test code leaked into the player JAR")
         require("LICENSE_multisolo" in names, "Mod license is missing")
         require(not any(name.startswith("net/minecraft/") for name in names),
                 "Do not redistribute Minecraft classes")
     if args.bootstrap_log:
         log = args.bootstrap_log.read_text(encoding="utf-8")
-        require("Multisolo foundation loaded: multisolo:origin revision 1" in log,
+        require("Multisolo Connected Solitude loaded: multisolo:origin revision 2" in log,
                 "Bootstrap did not reach Multisolo's initializer")
         require("Mod resolution failed" not in log, "Fabric dependency resolution failed")
     print(f"Single-JAR distribution verified: {jar_path.name}")

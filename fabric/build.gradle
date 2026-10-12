@@ -3,6 +3,7 @@ plugins {
 }
 
 base.archivesName = 'multisolo'
+evaluationDependsOn(':network')
 
 loom {
     splitEnvironmentSourceSets()
@@ -14,11 +15,28 @@ loom {
     }
 }
 
+fabricApi {
+    configureTests {
+        createSourceSet = true
+        modId = 'multisolo-test'
+        enableGameTests = false
+        enableClientGameTests = true
+        eula = false
+    }
+}
+
 dependencies {
     minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
     implementation "net.fabricmc:fabric-loader:${rootProject.loader_version}"
     implementation project(':core')
-    // No Fabric API or other player-installed mod is needed by this foundation.
+    implementation project(':network')
+    // These modules (and their transitive nested dependencies) ship inside our one JAR.
+    for (module in ['fabric-api-base', 'fabric-lifecycle-events-v1', 'fabric-screen-api-v1', 'fabric-resource-loader-v1']) {
+        implementation include(fabricApi.module(module, rootProject.fabric_api_version))
+    }
+    gametestImplementation fabricApi.module('fabric-client-gametest-api-v1', rootProject.fabric_api_version)
+    gametestImplementation fabricApi.module('fabric-resource-loader-v1', rootProject.fabric_api_version)
+    gametestImplementation project(':relay')
 }
 
 java {
@@ -48,6 +66,7 @@ processResources {
 jar {
     // Our own core classes are packaged inside the only distributable mod JAR.
     from project(':core').sourceSets.main.output
+    from project(':network').sourceSets.main.output
     from(rootProject.file('LICENSE')) { rename { 'LICENSE_multisolo' } }
     from(rootProject.file('THIRD_PARTY_NOTICES.md'))
     preserveFileTimestamps = false
@@ -56,4 +75,5 @@ jar {
 
 tasks.named('sourcesJar') {
     from project(':core').sourceSets.main.allSource
+    from project(':network').sourceSets.main.allSource
 }

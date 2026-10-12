@@ -3,7 +3,7 @@
   "id": "multisolo",
   "version": "${version}",
   "name": "Multisolo",
-  "description": "Solo, ensemble. Foundation for shared-seed asynchronous Minecraft adventures.",
+  "description": "Connected Solitude: seed 0, vanilla spawn, network identity and persistent located messages.",
   "authors": ["koka99cab"],
   "contact": {
     "sources": "https://github.com/koka99cab/multisolo",
@@ -12,8 +12,10 @@
   "license": "MIT",
   "environment": "*",
   "entrypoints": {
-    "main": ["io.github.koka99cab.multisolo.fabric.Multisolo"]
+    "main": ["io.github.koka99cab.multisolo.fabric.Multisolo"],
+    "client": ["io.github.koka99cab.multisolo.fabric.client.MultisoloClient"]
   },
+  "mixins": ["multisolo.mixins.json"],
   "depends": {
     "fabricloader": ">=${loader_version}",
     "minecraft": "=${minecraft_dependency_version}",

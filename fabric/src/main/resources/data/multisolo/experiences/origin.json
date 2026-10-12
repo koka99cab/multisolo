@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "id": "multisolo:origin",
-  "revision": 1,
-  "name": "Origine",
-  "seed": "20261012",
+  "revision": 2,
+  "name": "Connected Solitude",
+  "seed": "0",
   "difficulty": "NORMAL",
   "spawn": "vanilla",
   "worldgen_mods": {}

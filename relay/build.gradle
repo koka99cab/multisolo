@@ -1,0 +1,18 @@
+plugins { id 'application' }
+repositories { mavenCentral() }
+java { toolchain.languageVersion = JavaLanguageVersion.of(rootProject.java_version) }
+dependencies {
+    implementation project(':network')
+    implementation "com.google.code.gson:gson:${rootProject.gson_version}"
+    testImplementation platform("org.junit:junit-bom:${rootProject.junit_version}")
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+application { mainClass = 'io.github.koka99cab.multisolo.relay.RelayMain' }
+distributions.main.contents {
+    from(rootProject.file('LICENSE'))
+    from(rootProject.file('THIRD_PARTY_NOTICES.md'))
+    from(rootProject.file('licenses')) { into 'licenses' }
+}
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+test { useJUnitPlatform() }

@@ -2,29 +2,36 @@
 
 ```mermaid
 flowchart LR
-    Menu[Menu et rendu futurs] --> Fabric[Adaptateur Fabric]
+    Menu[Menu Multisolo] --> Fabric[Adaptateur Fabric]
     Server[Serveur intégré] --> Fabric
     Fabric --> Core[Règles Java core]
     Fabric --> Catalog[Catalogue embarqué]
-    Fabric -. consentement .-> Relay[Relais futur]
+    Menu --> Network[Identité et HTTP]
+    Network -. consentement .-> Relay[Relais persistant]
+    Relay --> Disk[Fichiers de messages]
 ```
 
-## Deux modules, un mod
+## Quatre modules, un mod
 
 `core` contient les règles testables sans le jeu : `Experience`,
 `CompatibilityKey`, `SocialConsent` et `GuestPolicy`. Il ne dépend d'aucun loader.
 Le module rend les portages plus petits ; il ne garantit pas la compatibilité
 avec une nouvelle version de Minecraft.
 
-`fabric` contient le point d'entrée et la lecture du catalogue. Les futures
-API du serveur, les mixins nécessaires et l'adaptation réseau appartiennent à
-`src/main`. Les écrans et le rendu iront dans `src/client` pour éviter de charger
-des classes client sur un serveur dédié. Aucun mixin n'est nécessaire au socle.
+`network` contient protocole, signature Ed25519, identité persistante et client
+HTTP. Il dépend de `core` et de Gson, sans Minecraft. `relay` est une application
+Java autonome : vérification des requêtes, stockage borné et interrogation spatiale.
+Le relais ne dépend pas de Fabric et n'est jamais inclus dans le JAR joueur.
 
-La tâche `:fabric:jar` inclut les classes de `core` : un seul fichier est
+`fabric/src/main` contient catalogue, métadonnées du monde et verrouillage de
+difficulté. `src/client` contient les écrans et le worker réseau. Les événements
+Fabric gèrent les écrans et le cycle de vie. Un mixin limite les setters de
+difficulté dans les expériences marquées ; voir la [décision 0002](decisions/0002-connected-solitude.md).
+
+La tâche `:fabric:jar` inclut les classes de `core` et `network` : un seul fichier est
 distribué. Les sources sont également produites pour faciliter le diagnostic.
-Il n'y a pas de framework multiloader, de backend vide ou de bibliothèque de
-configuration ajoutée avant un besoin réel.
+Les quatre modules Fabric API requis sont des JARs imbriqués. Leur présence et
+leurs licences sont vérifiées dans l'artefact produit.
 
 ## Sources de vérité
 
@@ -49,7 +56,14 @@ La future session d'entraide doit lier identité, hôte, expérience et expirati
 sur les paquets Minecraft**.
 
 Les sauvegardes ordinaires sont exclues de l'application des règles Multisolo.
-Créer une expérience signifie créer un nouveau monde marqué, avec sa définition
-persistée. Lors d'une mise à jour, vérifier cette définition ; ne pas l'écraser
-avec le nouveau catalogue. Ne pas enregistrer de compatibilité en jeu sur la
-seule base d'une compilation réussie.
+Le bouton de création utilise `WorldOpenFlows.createFreshLevel`, une seed longue
+zéro explicite et le preset normal vanilla. Il écrit `multisolo-experience.json`
+dans un répertoire neuf. Au lancement, la version exacte, l'expérience et la
+seed sauvegardée sont contrôlées avant d'activer les règles. Aucune donnée de
+spawn n'est remplacée. Une divergence exige une migration explicite.
+
+Le partage est réservé aux expériences solo marquées, au profil de mods vérifié
+et aux datapacks vanilla/Fabric. Les requêtes sont lancées à la demande du joueur,
+hors thread du jeu. Désactiver ou changer de monde annule le travail en cours et
+efface les messages affichés. Le [protocole](PROTOCOL.md) décrit la frontière
+d'autorité du relais.

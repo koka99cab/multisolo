@@ -53,3 +53,8 @@ jobs:
           name: multisolo-development-${{ runner.os }}
           path: fabric/build/libs/*.jar
           if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: multisolo-relay-${{ runner.os }}
+          path: relay/build/distributions/*.zip
+          if-no-files-found: error

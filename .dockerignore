@@ -1,0 +1,8 @@
+.git
+.gradle
+.tools
+**/build
+**/run
+data
+**/identity.json
+.env*

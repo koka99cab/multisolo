@@ -9,8 +9,9 @@ python -m unittest discover -s scripts/tests
 python scripts/verify_distribution.py
 ```
 
-Les tests Java vérifient les frontières d'expérience, le double consentement
-et les actions refusées aux invités. Ils ne simulent pas un serveur Minecraft.
+Les tests Java vérifient les frontières d'expérience, les messages, les signatures,
+le double consentement et les actions refusées aux invités. Les tests du relais
+lancent un vrai service HTTP local avec deux identités et un stockage temporaire.
 Le vérificateur contrôle les fichiers JSON, les invariants du catalogue et les
 frontières d'import de `core`. Les tests Python couvrent la sélection des versions.
 
@@ -19,12 +20,27 @@ puis vérifie que l'initialiseur Multisolo a chargé le catalogue. Elle laisse
 `eula=false` : le serveur s'arrête avant de démarrer un monde. Ce contrôle attrape
 les erreurs de résolution du manifeste sans prétendre valider une partie en jeu.
 Le vérificateur de distribution contrôle les dépendances et les classes `core`
-dans le JAR réellement produit.
+et les quatre modules Fabric API embarqués dans le JAR réellement produit.
+
+## Test client automatisé
+
+```sh
+./gradlew :fabric:runClientGameTest
+```
+
+Ce test ouvre un vrai client et crée une nouvelle expérience depuis le bouton
+du menu. Il contrôle seed 0, difficulté verrouillée malgré un setter forcé,
+publication depuis le jeu, lecture par une seconde identité et désactivation.
+Il vérifie aussi la sauvegarde/reprise de l'expérience. Les captures vont dans
+`fabric/build/run/clientGameTest/screenshots/`. Un GPU/contexte graphique compatible
+est nécessaire. Le profil est isolé dans `build/` ; aucune sauvegarde personnelle
+n'est utilisée. Les bibliothèques de test ne sont pas livrées aux joueurs.
 
 ## Essais en jeu avant déclaration de compatibilité
 
-Ces scénarios deviendront applicables avec chaque fonctionnalité livrée. Tant
-qu'ils ne sont pas exécutables et vérifiés, garder `gameplay_ready` à `false`.
+Appliquer les lignes v0.1 dès maintenant ; les essais invités/échos restent futurs.
+Tant que les essais de distribution et de réseau distant ne sont pas réalisés,
+garder `gameplay_ready` à `false` et ne pas annoncer de release complète.
 
 | Scénario | Résultat attendu |
 | --- | --- |
@@ -33,6 +49,9 @@ qu'ils ne sont pas exécutables et vérifiés, garder `gameplay_ready` à `false
 | Monde solo ordinaire | Aucun verrouillage ni changement de ses règles |
 | Modification de difficulté par interface ou commande | Refusée dans l'expérience, après création et rechargement |
 | Social désactivé / relais inaccessible | Monde jouable et sauvegardable sans connexion |
+| Message publié, relais arrêté puis redémarré | Même auteur, texte et coordonnées retrouvés |
+| Suppression par une autre identité | Refus `403`, message conservé |
+| Menu FR/EN et petite fenêtre | Boutons lisibles, brouillon conservé après erreur réseau |
 | Autre version, seed, révision, dimension ou worldgen | Aucun mélange de messages, échos ou sessions |
 | Invité : ramassage, dépôt, coffre, craft, XP, blocs, commandes | Refus côté serveur, y compris par paquets directs |
 | Invité : mort, déco, crash ou révocation | Session nettoyée ; aucun transfert d'inventaire |

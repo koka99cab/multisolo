@@ -4,7 +4,13 @@
   "target_series": "26.4",
   "update_channel": "preview",
   "protocol_version": 1,
-  "stage": "foundation",
+  "release_name": "Connected Solitude",
+  "support_goal": {
+    "minimum_java_edition": "26.1",
+    "policy": "separately_verified_builds",
+    "cross_version_messages": false
+  },
+  "stage": "alpha",
   "gameplay_ready": false,
   "validated_game_versions": [],
   "required_player_mods": ["multisolo"],
@@ -12,11 +18,13 @@
   "features": {
     "experience_model": "implemented",
     "guest_policy_model": "implemented",
-    "world_rule_enforcement": "planned",
-    "settings_menu": "planned",
-    "messages": "planned",
+    "world_creation_seed_0": "experimental",
+    "world_rule_enforcement": "experimental",
+    "settings_menu": "experimental",
+    "network_identity": "implemented",
+    "messages": "experimental",
     "echoes": "planned",
     "assistance": "planned",
-    "relay": "planned"
+    "relay": "implemented"
   }
 }

@@ -13,17 +13,19 @@ celui de Minecraft : la proposition initiale de spawn aléatoire a été abandon
 3. **Entraide** : demander de l'aide et accepter explicitement un invité temporaire.
    L'hôte peut mettre fin à la session. Rien ne démarre sans consentement des deux côtés.
 
-Ces trois fonctions sont prévues ; elles ne sont pas encore opérationnelles.
+La v0.1 [Connected Solitude](releases/0.1-connected-solitude.md) implémente les
+messages. Les échos et l'entraide sont prévus après cette première étape.
 
 ## Un menu social, des règles communes
 
-Le futur menu permettra d'activer séparément messages, échos et entraide. Par
-défaut, tout est hors ligne. Refuser le social ne change pas la seed ou la difficulté.
+Le menu v0.1 active les messages et choisit le relais ; le consentement est
+persistant et désactivé par défaut. Échos et entraide auront leurs contrôles
+propres plus tard. Refuser le social ne change pas la seed ou la difficulté.
 
 Une expérience fixe une seed, une difficulté, la génération et une révision.
-Tous ses participants jouent avec ces mêmes règles. Le serveur intégré devra
-appliquer la difficulté verrouillée et refuser les changements de règles dans
-les mondes Multisolo. Les autres sauvegardes restent des parties Minecraft ordinaires.
+Tous ses participants jouent avec ces mêmes règles. Les nouvelles sauvegardes
+marquées v0.1 sont créées en survie sans cheats ; le serveur intégré verrouille
+la difficulté normale. Les autres sauvegardes restent des parties Minecraft ordinaires.
 
 ## L'invité aide sans s'approprier la partie
 
@@ -39,9 +41,9 @@ le combat, mais ne donne pas à l'invité un droit sur ce butin.
 
 ## Une expérience pour commencer
 
-`multisolo:origin`, révision 1, utilise la seed de développement `20261012`, la
-difficulté `NORMAL` et la génération vanilla. Seed et difficulté sont des valeurs
-initiales de travail, à choisir définitivement après exploration en jeu.
+`multisolo:origin`, révision **2**, utilise la seed **`0`**, la difficulté
+`NORMAL` et la génération vanilla. La révision 1 à seed provisoire est historique
+et ne doit jamais être réécrite dans une sauvegarde existante.
 
 Plus tard, proposer des expériences distinctes pour des ensembles précis de mods
 de génération. Ne pas changer automatiquement une seed parce qu'un mod est présent.
@@ -55,11 +57,12 @@ les datapacks et configurations de génération avant d'accepter des expérience
 
 ## Connecter des mondes locaux
 
-Les messages et échos nécessiteront un relais. L'entraide nécessitera une connexion
+Les messages utilisent le [relais v0.1](RELAY.md). Les échos devront l'étendre.
+L'entraide nécessitera une connexion
 au serveur intégré de l'hôte et une solution aux routeurs/NAT. Une connexion directe,
 un relais et leurs coûts devront être évalués avant de promettre « inviter en un clic ».
 Ce dépôt ne prétend pas résoudre ces points avec un simple client HTTP.
 
-Un futur relais doit isoler les groupes compatibles, authentifier les sessions,
-limiter les abus et supporter une déconnexion propre. Une panne du service ne doit
-jamais empêcher le chargement ou la sauvegarde d'un monde solo.
+Le relais vérifie une identité cryptographique et isole les groupes compatibles.
+Ses premières limites ne remplacent pas une modération publique. Une panne du
+service n'empêche jamais le chargement ou la sauvegarde d'un monde solo.

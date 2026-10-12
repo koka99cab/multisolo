@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.0-dev.2 — Connected Solitude (en validation)
+
+- Nouvelle expérience : seed `0`, révision 2, survie normale et spawn vanilla.
+- Création d'une sauvegarde distincte depuis le menu Multisolo ; difficulté verrouillée.
+- Menu français/anglais accessible depuis l'accueil et la pause, consentement persistant.
+- Identité réseau Ed25519 persistante et signatures des requêtes.
+- Messages géolocalisés persistants : publication, lecture à 128 blocs et suppression par auteur.
+- Relais Java autonome avec stockage disque, limites et préparation Docker/VPS.
+- Objectif de support Java 26.1+ documenté ; seule la snapshot courante est ciblée.
+
+Le relais public n'est pas déployé. La compatibilité complète et la diffusion
+aux joueurs restent soumises à la validation. Les échos et l'entraide sont hors v0.1.
+
 ## 0.1.0-dev.1 — socle initial
 
 - Projet Fabric ciblant Minecraft Java 26.4-snapshot-3 et Java 25.
