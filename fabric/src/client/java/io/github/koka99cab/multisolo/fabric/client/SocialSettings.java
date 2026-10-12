@@ -16,7 +16,7 @@ record SocialSettings(int schemaVersion, boolean messagesEnabled, String relay) 
     static SocialSettings offline() { return new SocialSettings(1, false, "http://127.0.0.1:8787"); }
     static SocialSettings load(Path path) throws IOException {
         if (!Files.exists(path)) return offline();
-        try { return Protocol.JSON.fromJson(Files.readString(path), SocialSettings.class); }
+        try { return java.util.Objects.requireNonNull(Protocol.JSON.fromJson(Files.readString(path), SocialSettings.class)); }
         catch (RuntimeException exception) { throw new IOException("Invalid social preferences", exception); }
     }
     void save(Path path) throws IOException { AtomicFiles.write(path, Protocol.JSON.toJson(this)); }

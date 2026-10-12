@@ -13,6 +13,7 @@ Même cible Minecraft/Java que le socle. Vérifications locales sous Windows :
 | Monde ordinaire dans le test client | Difficulté modifiable, aucun verrouillage Multisolo |
 | `verify_distribution.py` | Un JAR joueur avec core/network, quatre modules Fabric API et leurs licences ; aucun test embarqué |
 | Bootstrap dédié | Initialiseur chargé ; arrêt à l'EULA, laissée à false |
+| Relais distribué `installDist` | Script autonome lancé ; `/health` répond `ok`, protocole 1 |
 
 Captures du client : `fabric/build/run/clientGameTest/screenshots/`. Le test
 client utilise des bibliothèques de test supplémentaires ; il ne remplace pas
@@ -21,8 +22,9 @@ sans domaine public. Docker n'est pas installé ici : le conteneur/VPS, HTTPS
 distant, installation sur un second poste et essais prolongés restent à valider.
 
 `gameplay_ready` reste `false` et `validated_game_versions` vide jusqu'à ces
-essais de distribution. La matrice GitHub du premier commit est passée sous
-Windows et Linux ; la nouvelle implémentation doit repasser sa propre CI.
+essais de distribution. La matrice GitHub du socle et celle de l'implémentation
+`8e947b0` sont passées sous Windows et Linux. Chaque nouveau commit conserve
+sa propre exécution CI.
 
 ## Historique — socle 0.1.0-dev.1
 

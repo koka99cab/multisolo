@@ -30,6 +30,12 @@ public final class ConnectedSolitudeGameTest implements FabricClientGameTest {
     }
     @Override public void runTest(ClientGameTestContext context) {
         try {
+            var invalidSettings = Files.createTempFile("multisolo-settings-test", ".json");
+            Files.writeString(invalidSettings, "null");
+            try {
+                SocialSettings.load(invalidSettings);
+                throw new AssertionError("Null preferences must fail closed");
+            } catch (java.io.IOException expected) { check(Files.readString(invalidSettings).equals("null"), "Invalid preferences were rewritten"); }
             context.setScreen(TitleScreen::new);
             context.clickScreenButton("Multisolo");
             context.waitForScreen(MultisoloScreen.class);
