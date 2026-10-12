@@ -9,6 +9,7 @@ Même cible Minecraft/Java, Windows et vrai client Vulkan :
 | `gradlew.bat build` | Réussi : 18 tests Java et assemblage |
 | `:fabric:runClientGameTest` | Réussi : menu natif, quatre lignes, votes, sauvegarde/rechargement et panneaux ordinaires |
 | Rendu vanilla | Texte noir par défaut, sans style RGB distant ; teinture et luminosité du panneau local conservées |
+| Aperçu du panneau | Ombre GUI retirée, espacement vanilla ; lisibilité contrôlée sur la capture du vrai client |
 | Ancienne publication colorée v2 | Lisible et votable, sa couleur historique ignorée au rendu |
 | Anciennes préférences | Relais et consentement conservés ; couleur retirée à l’enregistrement suivant |
 | Scripts | 8 tests Python, vérificateurs dépôt et distribution réussis |

@@ -113,7 +113,14 @@ public final class SignEditorSession {
         done.active = !active || readOnly() || (social().enabled() && !social().busy() && Arrays.stream(lines).anyMatch(line -> line != MessagePhrase.Line.EMPTY));
     }
     public void preview(GuiGraphicsExtractor graphics, int vanillaTextColor) {
-        for (int i = 0; i < 4; i++) graphics.centeredText(client().font, PhraseText.line(lines[i]), 0, i * 10 - 20, 0xFF000000 | vanillaTextColor);
+        var font = client().font;
+        int lineHeight = editor.multisolo$sign().getTextLineHeight();
+        for (int i = 0; i < 4; i++) {
+            var text = PhraseText.line(lines[i]).getVisualOrderText();
+            // Vanilla sign text has no GUI drop shadow; centeredText enables it.
+            graphics.text(font, text, -font.width(text) / 2, i * lineHeight - 2 * lineHeight,
+                    0xFF000000 | vanillaTextColor, false);
+        }
     }
     private void renderNotice(GuiGraphicsExtractor graphics) {
         if (!active) return;

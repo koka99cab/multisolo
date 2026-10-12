@@ -4,6 +4,7 @@
 
 - Retrait du choix hexadécimal et de son écran de préférences.
 - Texte des panneaux rendu avec leur couleur vanilla ; teintures et encre lumineuse locales conservées.
+- Aperçu dans le menu du panneau sans ombre ajoutée, avec l’espacement vanilla des lignes.
 - Anciennes couleurs Multisolo ignorées au rendu, sans rupture du protocole v2 ni perte des publications.
 - Anciennes préférences lues en conservant relais et consentement.
 
