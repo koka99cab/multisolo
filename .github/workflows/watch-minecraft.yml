@@ -25,7 +25,7 @@ jobs:
       - name: Detect candidates
         run: python scripts/check_minecraft_updates.py --output build/update-report.json
       - name: Open one porting issue per new version
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('node:fs');
