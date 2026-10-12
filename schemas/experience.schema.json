@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Multisolo experience v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "revision", "name", "seed", "difficulty", "spawn", "worldgen_mods"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "id": {"type": "string", "pattern": "^[a-z0-9_-]+:[a-z0-9_/-]+$"},
+    "revision": {"type": "integer", "minimum": 1},
+    "name": {"type": "string", "minLength": 1},
+    "seed": {"type": "string", "pattern": "^-?[0-9]{1,19}$", "description": "Signed Java long, stored as a string to avoid JSON precision loss."},
+    "difficulty": {"enum": ["PEACEFUL", "EASY", "NORMAL", "HARD"]},
+    "spawn": {"const": "vanilla"},
+    "worldgen_mods": {"type": "object", "additionalProperties": {"type": "string", "minLength": 1}}
+  }
+}

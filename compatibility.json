@@ -1,0 +1,22 @@
+{
+  "$schema": "./schemas/compatibility.schema.json",
+  "schema_version": 1,
+  "target_series": "26.4",
+  "update_channel": "preview",
+  "protocol_version": 1,
+  "stage": "foundation",
+  "gameplay_ready": false,
+  "validated_game_versions": [],
+  "required_player_mods": ["multisolo"],
+  "runtime_prerequisite": "Fabric Loader",
+  "features": {
+    "experience_model": "implemented",
+    "guest_policy_model": "implemented",
+    "world_rule_enforcement": "planned",
+    "settings_menu": "planned",
+    "messages": "planned",
+    "echoes": "planned",
+    "assistance": "planned",
+    "relay": "planned"
+  }
+}

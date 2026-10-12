@@ -1,0 +1,59 @@
+plugins {
+    id 'net.fabricmc.fabric-loom' version "${loom_version}"
+}
+
+base.archivesName = 'multisolo'
+
+loom {
+    splitEnvironmentSourceSets()
+    mods {
+        multisolo {
+            sourceSet sourceSets.main
+            sourceSet sourceSets.client
+        }
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
+    implementation "net.fabricmc:fabric-loader:${rootProject.loader_version}"
+    implementation project(':core')
+    // No Fabric API or other player-installed mod is needed by this foundation.
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(rootProject.java_version)
+    withSourcesJar()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = Integer.parseInt(rootProject.java_version)
+}
+
+processResources {
+    def properties = [
+        version: project.version,
+        minecraft_version: rootProject.minecraft_version,
+        minecraft_dependency_version: rootProject.minecraft_dependency_version,
+        loader_version: rootProject.loader_version,
+        java_version: rootProject.java_version
+    ]
+    inputs.properties properties
+    filesMatching('fabric.mod.json') {
+        expand properties
+    }
+}
+
+jar {
+    // Our own core classes are packaged inside the only distributable mod JAR.
+    from project(':core').sourceSets.main.output
+    from(rootProject.file('LICENSE')) { rename { 'LICENSE_multisolo' } }
+    from(rootProject.file('THIRD_PARTY_NOTICES.md'))
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+
+tasks.named('sourcesJar') {
+    from project(':core').sourceSets.main.allSource
+}

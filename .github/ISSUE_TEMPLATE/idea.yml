@@ -1,0 +1,19 @@
+name: Proposer une amélioration
+description: Une idée pour l'expérience joueur ou la maintenance
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: Besoin du joueur ou du mainteneur
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Comportement proposé
+    validations:
+      required: true
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Effets sur les sauvegardes, les permissions et l'installation

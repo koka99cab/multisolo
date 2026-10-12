@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "multisolo",
+  "version": "${version}",
+  "name": "Multisolo",
+  "description": "Solo, ensemble. Foundation for shared-seed asynchronous Minecraft adventures.",
+  "authors": ["koka99cab"],
+  "contact": {
+    "sources": "https://github.com/koka99cab/multisolo",
+    "issues": "https://github.com/koka99cab/multisolo/issues"
+  },
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["io.github.koka99cab.multisolo.fabric.Multisolo"]
+  },
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "minecraft": "=${minecraft_dependency_version}",
+    "java": ">=${java_version}"
+  }
+}

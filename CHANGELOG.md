@@ -1,0 +1,13 @@
+# Changelog
+
+## 0.1.0-dev.1 — socle initial
+
+- Projet Fabric ciblant Minecraft Java 26.4-snapshot-3 et Java 25.
+- Règles Java indépendantes du jeu : expérience, compatibilité, consentement,
+  politique des invités et tests.
+- Catalogue initial « Origine », seed de développement et difficulté normale.
+- Construction d'un seul JAR Multisolo, sans mod additionnel obligatoire.
+- Documentation française, instructions agents, CI et veille de versions.
+
+Le gameplay, le menu, le relais et l'application des permissions en jeu ne sont
+pas encore implémentés. Ce socle n'est pas une release destinée aux joueurs.

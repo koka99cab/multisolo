@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320" role="img" aria-labelledby="title desc">
+  <title id="title">Multisolo — Solo, ensemble.</title>
+  <desc id="desc">Trois paysages séparés reliés par des traces lumineuses, sur fond vert profond.</desc>
+  <rect width="1200" height="320" rx="24" fill="#12261f"/>
+  <g fill="none" stroke="#9ebda5" opacity=".12">
+    <path d="M0 80H1200M0 160H1200M0 240H1200M80 0V320M160 0V320M240 0V320M320 0V320M400 0V320M480 0V320M560 0V320M640 0V320M720 0V320M800 0V320M880 0V320M960 0V320M1040 0V320M1120 0V320"/>
+  </g>
+  <text x="64" y="82" fill="#b7d4af" font-family="sans-serif" font-size="14" letter-spacing="5">UN MONDE À TOI · DES TRACES DES AUTRES</text>
+  <text x="60" y="166" fill="#f1f2df" font-family="sans-serif" font-weight="700" font-size="76" letter-spacing="-3">multisolo</text>
+  <text x="64" y="218" fill="#b7d4af" font-family="sans-serif" font-size="25">Solo, ensemble.</text>
+  <text x="64" y="278" fill="#8ca696" font-family="sans-serif" font-size="14">MINECRAFT JAVA / FABRIC / PAR KOKA99CAB</text>
+  <g transform="translate(674 74)">
+    <g>
+      <rect width="134" height="172" rx="12" fill="#233c32" stroke="#567359"/>
+      <path d="M12 124H40V96H68V68H96V110H122V158H12Z" fill="#82a777"/>
+      <path d="M12 142H40V126H68V100H96V140H122V158H12Z" fill="#415d42"/>
+      <rect x="93" y="27" width="14" height="14" fill="#d6d8a3"/>
+    </g>
+    <g transform="translate(160 0)">
+      <rect width="134" height="172" rx="12" fill="#233c32" stroke="#567359"/>
+      <path d="M12 124H40V96H68V68H96V110H122V158H12Z" fill="#82a777"/>
+      <path d="M12 142H40V126H68V100H96V140H122V158H12Z" fill="#415d42"/>
+      <rect x="93" y="27" width="14" height="14" fill="#d6d8a3"/>
+      <path d="M43 71H55V84H58V104H40V84H43Z" fill="#d5eee1" opacity=".7"/>
+    </g>
+    <g transform="translate(320 0)">
+      <rect width="134" height="172" rx="12" fill="#233c32" stroke="#567359"/>
+      <path d="M12 124H40V96H68V68H96V110H122V158H12Z" fill="#82a777"/>
+      <path d="M12 142H40V126H68V100H96V140H122V158H12Z" fill="#415d42"/>
+      <rect x="93" y="27" width="14" height="14" fill="#d6d8a3"/>
+    </g>
+    <path d="M78 58Q162 5 238 58T398 58" fill="none" stroke="#d9dfa6" stroke-width="2" stroke-dasharray="4 7"/>
+    <g fill="#e9edc9"><circle cx="78" cy="58" r="4"/><circle cx="238" cy="58" r="4"/><circle cx="398" cy="58" r="4"/></g>
+  </g>
+</svg>

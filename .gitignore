@@ -1,0 +1,17 @@
+.gradle/
+**/build/
+**/run/
+**/out/
+.tools/
+.idea/
+.vscode/
+*.iml
+*.log
+*.hprof
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db

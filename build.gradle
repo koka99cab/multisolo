@@ -1,0 +1,16 @@
+plugins {
+    id 'base'
+}
+
+allprojects {
+    group = rootProject.maven_group
+    version = rootProject.mod_version
+}
+
+tasks.named('check') {
+    dependsOn ':core:check', ':fabric:check'
+}
+
+tasks.named('assemble') {
+    dependsOn ':core:assemble', ':fabric:assemble'
+}

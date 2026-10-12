@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Multisolo compatibility status",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "target_series", "update_channel", "protocol_version", "stage", "gameplay_ready", "validated_game_versions", "required_player_mods", "runtime_prerequisite", "features"],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schema_version": {"const": 1},
+    "target_series": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+$"},
+    "update_channel": {"enum": ["stable", "preview"]},
+    "protocol_version": {"type": "integer", "minimum": 1},
+    "stage": {"enum": ["foundation", "alpha", "beta", "stable"]},
+    "gameplay_ready": {"type": "boolean"},
+    "validated_game_versions": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "required_player_mods": {"const": ["multisolo"]},
+    "runtime_prerequisite": {"const": "Fabric Loader"},
+    "features": {"type": "object", "additionalProperties": {"enum": ["implemented", "planned", "experimental"]}}
+  }
+}

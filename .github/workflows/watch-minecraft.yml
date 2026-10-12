@@ -1,0 +1,62 @@
+name: Watch Minecraft versions
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: watch-minecraft
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Detect candidates
+        run: python scripts/check_minecraft_updates.py --output build/update-report.json
+      - name: Open one porting issue per new version
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('node:fs');
+            const report = JSON.parse(fs.readFileSync('build/update-report.json', 'utf8'));
+            if (!report.candidates.length) {
+              core.info('Aucun nouveau candidat de portage.');
+              return;
+            }
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              ...context.repo, state: 'all', per_page: 100
+            });
+            for (const candidate of report.candidates) {
+              const title = `Portage Minecraft ${candidate.version}`;
+              if (issues.some(issue => !issue.pull_request && issue.title === title)) continue;
+              await github.rest.issues.create({
+                ...context.repo,
+                title,
+                body: [
+                  `La veille a détecté **${candidate.version}**. Cible actuelle : **${report.current}**.`,
+                  '',
+                  `Source officielle : ${report.source}`,
+                  '',
+                  'Suivre `AGENTS.md` et `docs/MAINTENANCE.md` pour préparer une PR de portage.',
+                  '',
+                  '- [ ] Lire les changements Mojang et Fabric',
+                  '- [ ] Mettre à jour les versions exactes et adapter le code',
+                  '- [ ] Compiler, tester les règles et contrôler le JAR unique',
+                  '- [ ] Réaliser les essais en jeu de `docs/TESTING.md`',
+                  '- [ ] Mettre à jour le changelog et les preuves de compatibilité',
+                  '',
+                  'Cette issue signale une version ; elle ne prouve pas la compatibilité et ne lance pas encore un bot de portage.'
+                ].join('\n')
+              });
+            }

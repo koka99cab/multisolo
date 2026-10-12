@@ -1,0 +1,27 @@
+name: Signaler un problème
+description: Chargement, gameplay, compatibilité ou construction
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Résultat attendu et problème observé
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Étapes pour reproduire
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions exactes
+      description: Minecraft, Multisolo, Fabric Loader, Java et système.
+    validations:
+      required: true
+  - type: textarea
+    id: mods
+    attributes:
+      label: Autres mods et journaux utiles
+      description: Retirer les informations personnelles et jetons avant de joindre un journal.
