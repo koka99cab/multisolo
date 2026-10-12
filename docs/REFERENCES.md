@@ -24,6 +24,9 @@ aucun partenariat ou classement de « meilleurs mods » n'est revendiqué.
   test client dans un profil séparé, sans empaqueter le test dans le mod joueur.
 - [Fabric API Maven](https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/0.162.2+26.4/) :
   versions exactes des modules nécessaires à la cible actuelle.
+- [Rendu dans le monde, Fabric](https://docs.fabricmc.net/develop/rendering/world) :
+  séparation extraction/dessin ; les signatures utilisées par les échos sont
+  vérifiées dans les sources du module de rendu exact résolu pour cette snapshot.
 
 La conversation de conception fournie par l'auteur confirme la seed commune,
 les mondes séparés, les messages, les rencontres et l'inventaire invité verrouillé.

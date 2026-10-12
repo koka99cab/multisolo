@@ -1,7 +1,12 @@
 {
   "multisolo.relay": "Adresse du relais",
+  "multisolo.echo.enable": "Activer les apparitions (consentement)",
+  "multisolo.echo.disable": "Désactiver les apparitions",
+  "multisolo.echo.consent": "Autorise la capture et le partage de séquences de déplacements et gestes (8 s maximum, au plus une par minute). Position, regard et catégorie d’outil sont envoyés au relais, conservés 15 min en mémoire. Aucun pseudo, skin personnel ni inventaire. Active aussi la lecture des autres apparitions.",
+  "multisolo.echo.error": "Apparitions : relais indisponible. Ta partie continue hors ligne.",
   "multisolo.rules": "Seed 0 · Spawn vanilla · Survie · Difficulté normale",
-  "multisolo.consent": "Activer autorise l’envoi de ton identité réseau, du contenu prédéfini et de la position des panneaux au relais. Les panneaux proches sont lus toutes les 10 secondes. Aucun réseau en mode désactivé.",
+  "multisolo.consent": "Partages indépendants, désactivés par défaut. Détails au survol.",
+  "multisolo.message.consent": "Autorise l’envoi de ton identité réseau, du contenu prédéfini et de la position des panneaux au relais. Les panneaux proches sont lus toutes les 10 secondes. Aucun réseau si messages et apparitions sont désactivés.",
   "multisolo.enable": "Activer les messages (consentement)",
   "multisolo.disable": "Désactiver les messages",
   "multisolo.create": "Créer Connected Solitude — seed 0",

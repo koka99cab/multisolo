@@ -8,13 +8,14 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-record SocialSettings(int schemaVersion, boolean messagesEnabled, String relay) {
+record SocialSettings(int schemaVersion, boolean messagesEnabled, boolean echoesEnabled, String relay) {
     SocialSettings {
-        if (schemaVersion != 1 && schemaVersion != 2) throw new IllegalArgumentException("Unknown social preferences schema");
-        schemaVersion = 2;
+        if (schemaVersion < 1 || schemaVersion > 3) throw new IllegalArgumentException("Unknown social preferences schema");
+        if (schemaVersion < 3) echoesEnabled = false; // New data sharing always needs a new explicit choice.
+        schemaVersion = 3;
         RelayClient.validateEndpoint(URI.create(relay));
     }
-    static SocialSettings offline() { return new SocialSettings(2, false, "http://127.0.0.1:8787"); }
+    static SocialSettings offline() { return new SocialSettings(3, false, false, "http://127.0.0.1:8787"); }
     static SocialSettings load(Path path) throws IOException {
         if (!Files.exists(path)) return offline();
         try { return java.util.Objects.requireNonNull(Protocol.JSON.fromJson(Files.readString(path), SocialSettings.class)); }

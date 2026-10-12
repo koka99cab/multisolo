@@ -42,11 +42,23 @@ public final class Protocol {
     public record Messages(List<MessageView> messages) {
         public Messages { messages = List.copyOf(messages); }
     }
+    public record PublishEcho(CompatibilityKey scope, List<io.github.koka99cab.multisolo.core.echo.EchoFrame> frames) {
+        public PublishEcho {
+            java.util.Objects.requireNonNull(scope);
+            frames = io.github.koka99cab.multisolo.core.echo.EchoClip.validateFrames(frames);
+        }
+    }
+    public record Echoes(List<io.github.koka99cab.multisolo.core.echo.EchoClip> echoes) {
+        public Echoes { echoes = List.copyOf(echoes); }
+    }
 
     public static String query(CompatibilityKey scope, MessagePosition position) {
+        return nearbyQuery("messages", scope, position);
+    }
+    public static String nearbyQuery(String resource, CompatibilityKey scope, MessagePosition position) {
         String key = Base64.getUrlEncoder().withoutPadding().encodeToString(
                 JSON.toJson(scope).getBytes(StandardCharsets.UTF_8));
-        return "/v2/messages?scope=" + key + "&x=" + position.x()
+        return "/v2/" + resource + "?scope=" + key + "&x=" + position.x()
                 + "&y=" + position.y() + "&z=" + position.z();
     }
 

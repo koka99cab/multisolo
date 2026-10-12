@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.0-dev.6 — Apparitions de joueurs
+
+- Capture de déplacements, regard, accroupissement, course et gestes, jusqu'à huit secondes.
+- Consentement capture/lecture distinct des panneaux, désactivé pour les anciennes préférences.
+- Rejeu interpolé sur le renderer natif : corps translucide, fondu et outil générique, sans entité de jeu.
+- Routes v2 signées et isolées par expérience/version/dimension ; clips en mémoire expirant après quinze minutes.
+- Stockage et trajectoires bornés ; aucune archive de mouvements, aucun pseudo, skin personnel ni inventaire transmis.
+- Deux modules Fabric additionnels embarqués avec leurs licences ; toujours un seul JAR joueur.
+
 ## 0.1.0-dev.5 — Panneaux temporaires et votes
 
 - Copies de vrais panneaux vanilla au même XYZ, avec leur type et leur orientation.

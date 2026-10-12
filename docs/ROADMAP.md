@@ -31,7 +31,8 @@ Les cases décrivent du travail vérifiable. Elles n'annoncent aucune date.
 ## Après v0.1 — Présence asynchrone enrichie
 
 - [ ] Site de consultation des archives, distinct de leur conservation sur le relais.
-- [ ] Échos visuels sans collision ni influence sur le monde.
+- [x] Échos expérimentaux dev.6 : capture courte, relais éphémère et avatars sans entité de jeu.
+- [ ] Skins personnels et poses/équipements avancés, après validation de cette première capture.
 - [ ] Première alpha fermée, retours sur intérêt du concept et fluidité.
 
 ## 3 — Entraide temporaire
@@ -49,5 +50,6 @@ Les cases décrivent du travail vérifiable. Elles n'annoncent aucune date.
 - [ ] Porter sur chaque version Java depuis **26.1**, en conservant des builds vérifiés.
 - [ ] Plusieurs expériences et intégrations worldgen explicites, après la vanilla.
 
-Le [contrat v0.1](releases/0.1-connected-solitude.md) est prioritaire. Ne pas
-élargir à l'entraide ou aux échos avant validation de ces quatre fonctions.
+Le [contrat v0.1](releases/0.1-connected-solitude.md) reste le socle. Les échos
+dev.6 sont une extension expérimentale demandée après les panneaux ; l'entraide
+attend la validation des fonctionnalités et du réseau déjà présents.

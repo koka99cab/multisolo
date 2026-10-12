@@ -1,6 +1,33 @@
 # Validation — 12 octobre 2026
 
-## Panneaux temporaires et durée par les votes — 0.1.0-dev.5
+## Apparitions de joueurs — 0.1.0-dev.6
+
+Même cible Minecraft/Java, Windows et vrai client Vulkan :
+
+| Vérification | Résultat |
+| --- | --- |
+| `gradlew.bat build` | Réussi : 28 tests Java et assemblage |
+| `:fabric:runClientGameTest` | Réussi, y compris tous les scénarios des panneaux dev.5 |
+| Consentement séparé | Bouton natif testé ; activation des échos sans activer les panneaux, anciennes préférences laissant les échos désactivés |
+| Capture et HTTP | Geste local capturé en 41 échantillons et reçu par une seconde identité |
+| Rejeu natif | Trajectoire interpolée, accroupissement, outil générique et état d'avatar avec alpha partiel, sans nom |
+| Rendu visuel | Corps translucide et outil visibles sur la capture du vrai client ; aucune ombre d'avatar ajoutée |
+| Autorité | Aucun joueur ajouté à la liste client ni serveur ; seuls des états de rendu sont produits |
+| Révocation | Capture et apparitions locales effacées immédiatement |
+| Relais | Isolation de dimension/rayon/auteur, conflit UUID, expiration à quinze minutes, borne par auteur et absence d'archive disque/reprise après redémarrage |
+| Modèles | Rejet des coordonnées non finies, durées excessives, téléportations et trajectoires trop grandes ; interpolation des rotations traversant ±180° |
+| Distribution | Six modules Fabric embarqués avec leurs licences, aucun mod externe ni test dans le JAR joueur |
+| Scripts et bootstrap | 8 tests Python, vérificateurs dépôt/distribution et bootstrap dédié avec `eula=false` réussis |
+
+Capture : `fabric/build/run/clientGameTest/screenshots/0003_connected-solitude-echo.png`.
+Les skins et outils restent génériques ; le corps a un fondu, l'outil utilise
+son rendu vanilla. Nage, armure, montures, main dominante et animations spéciales
+restent à traiter. Les clips ne sont pas archivés ; l'expiration des panneaux
+reste indépendante. HTTPS distant, Docker/VPS, installation du JAR seul sur un
+second poste et essais prolongés restent à valider. `gameplay_ready=false`,
+`validated_game_versions` vide.
+
+## Historique — panneaux temporaires et durée par les votes 0.1.0-dev.5
 
 Même cible Minecraft/Java, Windows et vrai client Vulkan :
 

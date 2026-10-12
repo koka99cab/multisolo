@@ -30,7 +30,7 @@ difficulté dans les expériences marquées ; voir la [décision 0002](decisions
 
 La tâche `:fabric:jar` inclut les classes de `core` et `network` : un seul fichier est
 distribué. Les sources sont également produites pour faciliter le diagnostic.
-Les quatre modules Fabric API requis sont des JARs imbriqués. Leur présence et
+Les six modules Fabric API requis sont des JARs imbriqués. Leur présence et
 leurs licences sont vérifiées dans l'artefact produit.
 
 ## Sources de vérité
@@ -108,3 +108,26 @@ l'évaluent avec les votes ; `LocatedMessage.activeAt` représente seulement le 
 sans vote. Le relais filtre les expirés et refuse leurs votes, en conservant leurs
 fichiers. Le client utilise son dernier relevé ; les changements des autres joueurs
 arrivent au rafraîchissement suivant. Aucune échéance n'est renouvelée par une lecture.
+
+## Échos de joueurs
+
+`EchoFrame` et `EchoClip` bornent durée, coordonnées, gestes et trajectoire dans
+`core`. `network` ajoute deux routes v2 signées, sans modifier les panneaux.
+`EchoStore` garde au plus 2 000 séquences en mémoire, trois par identité et scope,
+avec une expiration de quinze minutes. Aucun fichier d'archive de déplacement.
+Une tâche minute purge les expirés même sans lecture ; les accès les purgent aussi.
+
+`SocialSettings` passe au schéma 3 : les schémas 1/2 conservent leurs préférences
+de panneaux mais imposent le nouveau consentement des échos à false. Les choix
+sont indépendants. Un chargement synchronisé fournit la même identité aux deux
+workers, sans création concurrente de clés. `EchoController` capture sur le
+thread client, échange sur son worker et rejette les réponses obsolètes par génération.
+Révocation, changement de monde/dimension ou profil incompatible annulent la capture.
+
+Les séquences reçues deviennent uniquement des `EchoAvatarRenderState` ajoutés à
+`LevelExtractionEvents.END_EXTRACTION`. Aucune entité n'est créée, tickée ou ajoutée
+aux mondes. Le renderer d'avatar natif anime modèle et outil générique. Le mixin
+`EchoOpacityMixin` ajuste transparence et teinte uniquement pour ce sous-type ;
+l'événement d'extraction ne permet pas de changer ces choix du renderer vanilla.
+Skins et textures proviennent du jeu, sans requête vers un fournisseur de skins.
+Voir la [décision 0005](decisions/0005-player-echoes.md).

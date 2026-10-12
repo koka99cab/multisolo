@@ -15,13 +15,15 @@ celui de Minecraft : la proposition initiale de spawn aléatoire a été abandon
    L'hôte peut mettre fin à la session. Rien ne démarre sans consentement des deux côtés.
 
 La v0.1 [Connected Solitude](releases/0.1-connected-solitude.md) implémente les
-messages. Les échos et l'entraide sont prévus après cette première étape.
+messages. Depuis dev.6, des échos expérimentaux étendent cette base à la demande
+de l'auteur ; l'entraide reste ultérieure.
 
 ## Un menu social, des règles communes
 
 Le menu v0.1 active les messages et choisit le relais ; le consentement est
-persistant et désactivé par défaut. Échos et entraide auront leurs contrôles
-propres plus tard. Refuser le social ne change pas la seed ou la difficulté.
+persistant et désactivé par défaut. Les apparitions ont un consentement distinct
+pour capturer et lire des traces. L'entraide aura son contrôle propre plus tard.
+Refuser le social ne change pas la seed ou la difficulté.
 
 Une expérience fixe une seed, une difficulté, la génération et une révision.
 Tous ses participants jouent avec ces mêmes règles. Les nouvelles sauvegardes
@@ -58,7 +60,7 @@ les datapacks et configurations de génération avant d'accepter des expérience
 
 ## Connecter des mondes locaux
 
-Les messages utilisent le [relais v0.1](RELAY.md). Les échos devront l'étendre.
+Les messages et échos utilisent le [relais](RELAY.md), dans des stockages séparés.
 L'entraide nécessitera une connexion
 au serveur intégré de l'hôte et une solution aux routeurs/NAT. Une connexion directe,
 un relais et leurs coûts devront être évalués avant de promettre « inviter en un clic ».
@@ -96,3 +98,20 @@ même UUID ne renouvellent pas l'échéance. L'expiration interdit les votes et 
 la copie hors champ ; une copie sauvegardée expirée est nettoyée au chargement du
 chunk avant sa réception par le client. Le panneau d'origine reste chez son auteur.
 L'archive du relais reste enregistrée, sans site de consultation pour le moment.
+
+## Des apparitions de passages récents
+
+Une apparition rejoue jusqu'à huit secondes enregistrées à cinq échantillons par
+seconde : position, regard, accroupissement, course, bras et catégorie d'outil.
+L'enregistrement actif est envoyé au plus une fois par minute après consentement.
+Les pauses, téléportations et changements de monde interrompent la capture.
+Les séquences expirent après quinze minutes et ne rejoignent pas les archives.
+
+Un avatar translucide est dessiné sans entité de jeu, nom, ombre ni son. Il utilise
+un skin vanilla générique stable par identité et un outil en fer représentatif.
+La lecture interpole les positions et rotations, avec un fondu d'entrée/sortie.
+Un clip n'est joué qu'une fois par session de consentement ; douze secondes
+séparent les départs. Le départ exige une distance de 8 à 64 blocs et un chemin
+chargé sans construction traversée. Les gestes de minage restent visuels : aucun
+bloc distant n'est affecté. Skins personnels, armure, nage, montures et gestes
+spéciaux ne sont pas reproduits dans cette première version.

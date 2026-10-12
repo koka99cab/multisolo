@@ -1,7 +1,11 @@
 {
   "multisolo.relay": "Relay address",
+  "multisolo.echo.enable": "Enable apparitions (consent)",
+  "multisolo.echo.disable": "Disable apparitions",
+  "multisolo.echo.consent": "Allows capturing and sharing motion and gestures (up to 8 s, at most once per minute). Position, look direction and tool category go to the relay, held in memory for 15 min. No name, personal skin or inventory. Also enables other players’ apparitions.",
+  "multisolo.echo.error": "Apparitions: relay unavailable. Your solo game continues offline.",
   "multisolo.rules": "Seed 0 · Vanilla spawn · Survival · Normal difficulty",
-  "multisolo.consent": "Enabling sends your network identity, preset sign content and sign positions to the relay. Nearby signs are fetched every 10 seconds. No network when disabled.",
+  "multisolo.consent": "Independent sharing, off by default. Hover for details.",
   "multisolo.enable": "Enable messages (consent)",
   "multisolo.disable": "Disable messages",
   "multisolo.create": "Create Connected Solitude — seed 0",
@@ -50,5 +54,6 @@
   "multisolo.phrase.line.shelter": "Shelter",
   "multisolo.phrase.line.jump": "Jump",
   "multisolo.phrase.line.patience": "Patience",
-  "multisolo.vote.lifetime": "%s days by default. Each upvote adds one day; each downvote removes one day. Total lifetime: between %s and %s days from publication."
+  "multisolo.vote.lifetime": "%s days by default. Each upvote adds one day; each downvote removes one day. Total lifetime: between %s and %s days from publication.",
+  "multisolo.message.consent": "Allows sending your network identity, preset content and sign positions to the relay. Nearby signs refresh every 10 seconds. No network when messages and apparitions are both disabled."
 }

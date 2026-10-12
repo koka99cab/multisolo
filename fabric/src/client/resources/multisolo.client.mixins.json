@@ -5,7 +5,8 @@
   "client": [
     "SignEditorMixin",
     "SignRendererMixin",
-    "SignInteractionMixin"
+    "SignInteractionMixin",
+    "EchoOpacityMixin"
   ],
   "injectors": {
     "defaultRequire": 1

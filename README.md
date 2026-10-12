@@ -28,7 +28,7 @@ dans le menu Multisolo ; les règles d'une expérience restent communes.
 
 ## État réel du projet
 
-**v0.1 — Connected Solitude**, en développement (`0.1.0-dev.5`).
+**v0.1 — Connected Solitude**, en développement (`0.1.0-dev.6`).
 La seed de cette première expérience est **`0`**. Chaque joueur crée une
 sauvegarde indépendante, en survie normale verrouillée, avec le spawn vanilla.
 
@@ -37,7 +37,8 @@ sauvegarde indépendante, en survie normale verrouillée, avec le spawn vanilla.
 | Création d'une expérience seed 0 depuis le menu | Validation complète du JAR distribué |
 | Menu FR/EN, consentement et fonctionnement hors ligne | Hébergement HTTPS du relais (VPS OVH envisagé) |
 | Identité réseau cryptographique persistante | Essais du relais en conditions publiques |
-| Panneaux vanilla partagés, vocabulaire fermé et votes | Silhouettes et entraide, après la v0.1 |
+| Panneaux vanilla partagés, vocabulaire fermé et votes | Entraide temporaire |
+| Capture et lecture d'apparitions de joueurs | Skins personnels et animations avancées |
 | CI, veille des versions et guide pour les bots | Portages vérifiés sur les autres versions Java 26.x |
 
 Le [contrat de la v0.1](docs/releases/0.1-connected-solitude.md) décrit les limites
@@ -57,7 +58,7 @@ messages restent isolés par version pour respecter les différences de généra
 
 L'objectif est **un seul mod à ajouter : `multisolo-….jar`**, dans un profil
 Minecraft utilisant Fabric Loader. Fabric API, Mod Menu ou une bibliothèque de
-configuration ne sont pas à installer séparément : les quatre modules Fabric API
+configuration ne sont pas à installer séparément : les six modules Fabric API
 utilisés sont embarqués avec leurs licences.
 
 Les codes `core` et `network` sont inclus dans le même JAR. Fabric Loader reste
@@ -94,6 +95,27 @@ signalement Mojang ou Multisolo n'est ajouté. Le texte garde la couleur vanilla
 du panneau ; aucun choix de couleur Multisolo pour le moment. Les lectures proches
 se rafraîchissent toutes les dix secondes quand
 le social est activé dans une expérience compatible.
+
+## Apercevoir les autres joueurs
+
+**Multisolo → Activer les apparitions** autorise séparément leur capture et leur
+lecture. Survoler le bouton affiche les données partagées. L'option est désactivée
+par défaut, y compris après une mise à jour depuis une ancienne version.
+
+Le mod enregistre jusqu'à **8 secondes** de déplacement, regard, accroupissement,
+course et gestes du bras, au plus une séquence par minute. Une catégorie d'outil
+est partagée pour afficher un outil générique. Les séquences expirent après
+**15 minutes** sur le relais et restent en mémoire, séparément des archives de panneaux.
+Aucun pseudo, skin personnel, inventaire ou contenu des blocs n'est envoyé.
+
+Dans une partie compatible, les séquences d'autres installations proches sont
+rejouées au même endroit sous forme de silhouettes translucides avec un fondu.
+La première version utilise les skins fournis avec Minecraft et des outils en
+fer génériques. Les chemins qui traversent une construction locale sont ignorés.
+Les silhouettes ne sont jamais des entités du monde : aucune collision, cible,
+destruction, loot ou bruit de minage. Ce sont des traces enregistrées, sans direct.
+Désactiver l'option efface immédiatement la capture et les apparitions locales ;
+les séquences déjà envoyées expirent sur le relais.
 
 ## Commencer à développer
 

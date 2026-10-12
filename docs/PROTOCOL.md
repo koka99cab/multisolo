@@ -29,6 +29,8 @@ position. Ne pas utiliser ces messages pour classer ou certifier une progression
 | `GET /v2/messages?scope=…&x=…&y=…&z=…` | Lire jusqu'à 50 messages actifs à 128 blocs |
 | `PUT /v2/messages/{uuid}/vote` | Voter +1, -1 ou annuler (0) |
 | `DELETE /v2/messages/{uuid}` | Supprimer un message dont on possède l'identité auteur |
+| `PUT /v2/echoes/{uuid}` | Envoyer une séquence bornée de mouvements |
+| `GET /v2/echoes?scope=…&x=…&y=…&z=…` | Lire jusqu'à six séquences actives d'autres identités à 128 blocs |
 
 Corps PUT (exemple) :
 
@@ -121,3 +123,44 @@ l'auteur. Les votes de l'ancienne publication ne sont pas transférés.
 Les anciennes routes v1 sont refusées. Un répertoire contenant l'ancien format
 est refusé au démarrage : conserver sa sauvegarde et choisir un nouveau répertoire
 v2. Aucun texte libre historique n'est importé, réécrit ou supprimé automatiquement.
+
+## Séquences de joueurs — extension dev.6
+
+Les échos utilisent les mêmes en-têtes signés et le même `scope`, avec un
+consentement distinct dans le client. Un ancien relais sans ces routes renvoie
+`404` ; les panneaux restent utilisables. Corps PUT :
+
+```json
+{
+  "scope": {"experience":{"id":"multisolo:origin","revision":2,"seed":0,"difficulty":"NORMAL","worldgenMods":{}},"minecraftVersion":"26.4-snapshot-3","protocolVersion":2,"dimension":"minecraft:overworld"},
+  "frames": [
+    {"x":0.5,"y":64,"z":0.5,"yaw":179,"pitch":0,"crouching":false,"sprinting":true,"swing":0,"tool":"PICKAXE"},
+    {"x":1.5,"y":64,"z":0.5,"yaw":-179,"pitch":25,"crouching":true,"sprinting":false,"swing":0.5,"tool":"PICKAXE"}
+  ]
+}
+```
+
+Réponse PUT : `EchoClip` (`id`, `authorId`, `scope`, `frames`, `createdAt`), auteur
+et date fixés par le relais. Réponse GET : `{"echoes":[EchoClip]}`. Le centre et
+le scope sont encodés comme pour les panneaux. Les clips de l'identité lectrice
+sont exclus. L'ancrage est le bloc contenant le premier échantillon.
+
+2 à 41 échantillons, espacés de 200 ms ; durée maximale de huit secondes. Les
+coordonnées et rotations doivent être finies ; X/Z dans ±30 millions, Y dans
+±2048, yaw dans ±180°, pitch dans ±90°, swing dans [0,1]. Un déplacement entre
+échantillons ne peut dépasser huit blocs, et toute la trajectoire reste à
+64 blocs du début. `tool` appartient à HAND/PICKAXE/AXE/SHOVEL/HOE/SWORD ; ce n'est
+ni un inventaire ni un identifiant d'item arbitraire. Pas de pseudo, URL, texte,
+skin, NBT ou action de bloc. Les limites de corps et de signatures restent communes.
+
+Stockage en mémoire : 2 000 clips maximum, trois par identité/scope, six résultats
+par lecture. Le quatrième clip remplace le plus ancien de son groupe. Un même UUID
+et contenu encore en mémoire retourne la publication initiale ; un conflit vaut
+`409`. Le client officiel publie au plus une séquence par minute. Le quota commun
+de dix mutations/minute s'applique côté relais.
+
+À quinze minutes depuis publication, le clip n'est plus visible. Les accès et
+une tâche chaque minute purgent les expirés ; sans accès, la mémoire peut donc
+être libérée à la minute suivante. Un redémarrage perd tous les échos. Aucune
+archive disque ni route de suppression d'écho n'est ajoutée : la révocation du
+consentement arrête le client et les publications déjà reçues finissent leur TTL.

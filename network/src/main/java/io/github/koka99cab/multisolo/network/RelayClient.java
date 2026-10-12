@@ -75,6 +75,23 @@ public final class RelayClient implements AutoCloseable {
     public void delete(UUID id) throws IOException, InterruptedException, GeneralSecurityException {
         request("DELETE", Protocol.path(id), "");
     }
+    public io.github.koka99cab.multisolo.core.echo.EchoClip publishEcho(UUID id, CompatibilityKey scope,
+            List<io.github.koka99cab.multisolo.core.echo.EchoFrame> frames) throws IOException, InterruptedException, GeneralSecurityException {
+        var result = Protocol.JSON.fromJson(request("PUT", "/v2/echoes/" + id,
+                Protocol.JSON.toJson(new Protocol.PublishEcho(scope, frames))), io.github.koka99cab.multisolo.core.echo.EchoClip.class);
+        if (!result.id().equals(id) || !result.authorId().equals(identity.id()) || !scope.equals(result.scope()) || !frames.equals(result.frames()))
+            throw new IOException("Relay returned a different echo");
+        return result;
+    }
+    public List<io.github.koka99cab.multisolo.core.echo.EchoClip> nearbyEchoes(CompatibilityKey scope, MessagePosition position)
+            throws IOException, InterruptedException, GeneralSecurityException {
+        var result = Protocol.JSON.fromJson(request("GET", Protocol.nearbyQuery("echoes", scope, position), ""), Protocol.Echoes.class);
+        if (result.echoes().size() > 6 || result.echoes().stream().anyMatch(echo -> !scope.canShareWith(echo.scope())
+                || position.distanceSquared(echo.anchor()) > RADIUS_SQUARED || echo.authorId().equals(identity.id())))
+            throw new IOException("Relay returned echoes outside the requested scope");
+        return result.echoes();
+    }
+    private static final long RADIUS_SQUARED = Protocol.RADIUS * Protocol.RADIUS;
 
     private String request(String method, String target, String text)
             throws IOException, InterruptedException, GeneralSecurityException {

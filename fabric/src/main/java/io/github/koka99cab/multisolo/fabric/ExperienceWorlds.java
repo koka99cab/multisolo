@@ -32,7 +32,8 @@ public final class ExperienceWorlds {
                     || id.equals("multisolo") || id.equals("mixinextras")
                     || id.equals("fabric-api-base") || id.equals("fabric-lifecycle-events-v1")
                     || id.equals("fabric-screen-api-v1")
-                    || id.equals("fabric-resource-loader-v1")
+                    || id.equals("fabric-resource-loader-v1") || id.equals("fabric-rendering-v1")
+                    || id.equals("fabric-transitive-access-wideners-v1")
                     || (testRun && (id.startsWith("fabric-") || id.equals("multisolo-test")));
         });
     }

@@ -24,7 +24,11 @@ import java.util.concurrent.TimeUnit;
 public final class RelayServer implements AutoCloseable {
     private final HttpServer server;
     private final MessageStore store;
+    private final EchoStore echoes;
     private final java.time.Clock clock;
+    private final java.util.concurrent.ScheduledExecutorService echoCleanup = java.util.concurrent.Executors.newSingleThreadScheduledExecutor(task -> {
+        var thread = new Thread(task, "multisolo-echo-cleanup"); thread.setDaemon(true); return thread;
+    });
     private final ThreadPoolExecutor workers = new ThreadPoolExecutor(4, 4, 0, TimeUnit.SECONDS,
             new ArrayBlockingQueue<>(128));
     private final Map<String, Window> rates = new HashMap<>();
@@ -36,12 +40,16 @@ public final class RelayServer implements AutoCloseable {
     public RelayServer(InetSocketAddress address, Path directory, java.time.Clock clock) throws IOException {
         this.clock = java.util.Objects.requireNonNull(clock);
         store = new MessageStore(directory, clock);
+        echoes = new EchoStore(clock);
         server = HttpServer.create(address, 64);
         server.setExecutor(workers);
         server.createContext("/", this::handle);
     }
 
-    public void start() { server.start(); }
+    public void start() {
+        server.start();
+        echoCleanup.scheduleAtFixedRate(echoes::prune, 1, 1, TimeUnit.MINUTES);
+    }
     public int port() { return server.getAddress().getPort(); }
 
     private void handle(HttpExchange exchange) throws IOException {
@@ -54,7 +62,8 @@ public final class RelayServer implements AutoCloseable {
                 if ("GET".equals(method) && "/health".equals(target)) {
                     respond(exchange, 200, "{\"status\":\"ok\",\"protocol\":2}"); return;
                 }
-                if (!path.equals("/v2/messages") && !path.startsWith("/v2/messages/")) {
+                boolean echoRequest = path.equals("/v2/echoes") || path.startsWith("/v2/echoes/");
+                if (!echoRequest && !path.equals("/v2/messages") && !path.startsWith("/v2/messages/")) {
                     respond(exchange, 404, "{}"); return;
                 }
                 byte[] body = exchange.getRequestBody().readNBytes(Protocol.MAX_BODY_BYTES + 1);
@@ -62,7 +71,7 @@ public final class RelayServer implements AutoCloseable {
                 String author = authenticate(exchange, method, target, body);
                 if (author == null) { respond(exchange, 401, "{}"); return; }
                 if (!allow("read:" + author, 120)) { respond(exchange, 429, "{}"); return; }
-                if ("GET".equals(method) && path.equals("/v2/messages")) {
+                if ("GET".equals(method) && (path.equals("/v2/messages") || path.equals("/v2/echoes"))) {
                     if (body.length != 0) throw new IllegalArgumentException("Unexpected body");
                     Map<String, String> query = query(exchange.getRequestURI().getRawQuery());
                     if (!query.keySet().equals(Set.of("scope", "x", "y", "z"))) throw new IllegalArgumentException("Query fields");
@@ -71,7 +80,15 @@ public final class RelayServer implements AutoCloseable {
                     validateScope(scope);
                     MessagePosition center = new MessagePosition(Integer.parseInt(query.get("x")),
                             Integer.parseInt(query.get("y")), Integer.parseInt(query.get("z")));
-                    respond(exchange, 200, Protocol.JSON.toJson(new Protocol.Messages(store.nearby(scope, center, author))));
+                    respond(exchange, 200, Protocol.JSON.toJson(echoRequest ? new Protocol.Echoes(echoes.nearby(scope, center, author))
+                            : new Protocol.Messages(store.nearby(scope, center, author))));
+                } else if (echoRequest && "PUT".equals(method) && exchange.getRequestURI().getRawQuery() == null) {
+                    UUID id = UUID.fromString(path.substring("/v2/echoes/".length()));
+                    if (!path.equals("/v2/echoes/" + id)) throw new IllegalArgumentException("Non-canonical echo id");
+                    if (!allow("write:" + author, 10)) { respond(exchange, 429, "{}"); return; }
+                    var request = Protocol.JSON.fromJson(new String(body, StandardCharsets.UTF_8), Protocol.PublishEcho.class);
+                    validateScope(request.scope());
+                    respond(exchange, 200, Protocol.JSON.toJson(echoes.publish(id, author, request)));
                 } else if (path.startsWith("/v2/messages/") && exchange.getRequestURI().getRawQuery() == null) {
                     boolean voting = path.endsWith("/vote");
                     String messagePath = voting ? path.substring(0, path.length() - 5) : path;
@@ -155,5 +172,5 @@ public final class RelayServer implements AutoCloseable {
         exchange.getResponseBody().write(bytes);
     }
 
-    @Override public void close() { server.stop(0); workers.shutdownNow(); }
+    @Override public void close() { server.stop(0); echoCleanup.shutdownNow(); workers.shutdownNow(); }
 }

@@ -52,6 +52,67 @@ public final class ConnectedSolitudeGameTest implements FabricClientGameTest {
                 client.getSingleplayerServer().getPlayerList().getPlayers().getFirst().teleportTo(pos.getX() + .5, pos.getY(), pos.getZ() + .5)));
         context.waitFor(client -> client.player.blockPosition().equals(pos), 200);
     }
+    private static void echoes(ClientGameTestContext context, BlockPos origin) throws Exception {
+        var otherIdentity = NetworkIdentity.generate();
+        try (var relay = new RelayServer(new InetSocketAddress("127.0.0.1", 0), Files.createTempDirectory("multisolo-echo-test"))) {
+            relay.start(); String endpoint = "http://127.0.0.1:" + relay.port();
+            teleport(context, origin.offset(-2, 0, 0));
+            var target = origin.offset(-2, 0, 12);
+            AtomicBoolean prepared = new AtomicBoolean();
+            context.runOnClient(client -> client.getSingleplayerServer().execute(() -> {
+                var level = client.getSingleplayerServer().overworld();
+                for (int x = -2; x <= 4; x++) for (int z = -12; z <= 1; z++) {
+                    level.setBlock(target.offset(x, -1, z), Blocks.STONE.defaultBlockState(), 3);
+                    for (int y = 0; y < 4; y++) {
+                        var pos = target.offset(x, y, z);
+                        if (!pos.equals(origin)) level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+                    }
+                }
+                client.getSingleplayerServer().getPlayerList().getPlayers().getFirst().setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND,
+                        new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.IRON_PICKAXE));
+                prepared.set(true);
+            }));
+            context.waitFor(client -> prepared.get(), 200);
+            var scope = new CompatibilityKey(ExperienceCatalog.origin(), ExperienceWorlds.gameVersion(), Protocol.VERSION, "minecraft:overworld");
+            var frames = new java.util.ArrayList<io.github.koka99cab.multisolo.core.echo.EchoFrame>();
+            for (int i = 0; i < 41; i++) frames.add(new io.github.koka99cab.multisolo.core.echo.EchoFrame(
+                    target.getX() + .5 + i * .05, target.getY(), target.getZ() + .5, 180, 25, i > 20, false,
+                    (i % 3) / 3F, io.github.koka99cab.multisolo.core.echo.EchoFrame.Tool.PICKAXE));
+            try (var other = new RelayClient(URI.create(endpoint), otherIdentity)) {
+                other.publishEcho(UUID.randomUUID(), scope, frames);
+                check(!context.computeOnClient(client -> MultisoloClient.SOCIAL.echoesEnabled()), "Echo sharing was enabled without separate consent");
+                context.runOnClient(client -> MultisoloClient.SOCIAL.configure(false, endpoint));
+                AtomicReference<EchoAvatarRenderState> drawn = new AtomicReference<>();
+                net.fabricmc.fabric.api.client.rendering.v1.level.LevelExtractionEvents.END_EXTRACTION.register(render -> {
+                    for (var state : render.levelState().entityRenderStates) if (state instanceof EchoAvatarRenderState echo) drawn.set(echo);
+                });
+                context.setScreen(() -> new MultisoloScreen(new TitleScreen()));
+                context.clickScreenButton("multisolo.echo.enable");
+                context.runOnClient(client -> { client.gui.setScreen(null); client.player.setYRot(0); client.player.setXRot(0); });
+                context.waitFor(client -> MultisoloClient.ECHOES.activeCount() == 1 && drawn.get() != null, 400);
+                check(!context.computeOnClient(client -> MultisoloClient.SOCIAL.enabled()), "Echo consent also enabled sign sharing");
+                double initialX = drawn.get().x;
+                context.waitFor(client -> MultisoloClient.ECHOES.recordedFrames() > 0, 100);
+                context.runOnClient(client -> client.player.swing(net.minecraft.world.InteractionHand.MAIN_HAND,
+                        net.minecraft.world.item.component.SwingAnimation.DEFAULT, false));
+                context.waitTicks(25);
+                check(drawn.get().x > initialX && drawn.get().rightHandItemStack.is(net.minecraft.world.item.Items.IRON_PICKAXE), "Echo motion/tool did not reach the native renderer");
+                check((drawn.get().tint >>> 24) > 0 && (drawn.get().tint >>> 24) < 255 && drawn.get().nameTag == null, "Echo is opaque or has a name tag");
+                context.takeScreenshot("connected-solitude-echo");
+                check(context.computeOnClient(client -> client.level.players().size() == 1 && client.getSingleplayerServer().getPlayerList().getPlayers().size() == 1), "A cosmetic echo became a real world player");
+                context.waitFor(client -> drawn.get().isCrouching, 200);
+                context.waitFor(client -> MultisoloClient.ECHOES.lastPublished() != null, 500);
+                var captured = context.computeOnClient(client -> MultisoloClient.ECHOES.lastPublished());
+                check(captured.frames().size() == 41 && captured.frames().stream().anyMatch(frame -> frame.swing() > 0), "Local gestures were not captured and uploaded");
+                check(other.nearbyEchoes(scope, captured.anchor()).stream().anyMatch(clip -> clip.id().equals(captured.id())), "Second installation cannot retrieve captured motion");
+                context.setScreen(() -> new MultisoloScreen(new TitleScreen()));
+                context.clickScreenButton("multisolo.echo.disable");
+                check(context.computeOnClient(client -> !MultisoloClient.SOCIAL.echoesEnabled() && MultisoloClient.ECHOES.activeCount() == 0
+                        && MultisoloClient.ECHOES.recordedFrames() == 0), "Revoking consent did not discard capture and playback");
+                context.runOnClient(client -> client.gui.setScreen(null));
+            }
+        }
+    }
     @Override public void runTest(ClientGameTestContext context) {
         try {
             var invalidSettings = Files.createTempFile("multisolo-settings-test", ".json");
@@ -62,7 +123,7 @@ public final class ConnectedSolitudeGameTest implements FabricClientGameTest {
             } catch (java.io.IOException expected) { check(Files.readString(invalidSettings).equals("null"), "Invalid preferences were rewritten"); }
             Files.writeString(invalidSettings, "{\"schemaVersion\":2,\"messagesEnabled\":true,\"relay\":\"http://127.0.0.1:8787\",\"signColor\":\"#12ABEF\"}");
             var legacySettings = SocialSettings.load(invalidSettings);
-            check(legacySettings.messagesEnabled() && legacySettings.relay().equals("http://127.0.0.1:8787"), "Removing color reset existing consent or relay preferences");
+            check(legacySettings.messagesEnabled() && !legacySettings.echoesEnabled() && legacySettings.relay().equals("http://127.0.0.1:8787"), "Legacy settings changed consent or implicitly enabled echoes");
             legacySettings.save(invalidSettings);
             check(!Files.readString(invalidSettings).contains("signColor"), "Obsolete color preference was saved again");
             Files.delete(invalidSettings);
@@ -215,6 +276,7 @@ public final class ConnectedSolitudeGameTest implements FabricClientGameTest {
                 context.runOnClient(client -> MultisoloClient.SOCIAL.configure(false, endpoint));
                 check(context.computeOnClient(client -> MultisoloClient.SOCIAL.messages().isEmpty()), "Disabled social retained visible remote messages");
             }
+            echoes(context, signPosition);
             // Persist an expired marked copy and verify that chunk loading cleans only that copy.
             BlockPos cleanupPosition = signPosition.offset(-2, 0, 14);
             context.setScreen(() -> new MultisoloScreen(new TitleScreen()));

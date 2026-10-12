@@ -82,6 +82,13 @@ Les limites par identité ne bloquent pas la création de nouvelles clés ; les
 essais de charge et protections globales restent à évaluer avant ouverture.
 Voir le [protocole](PROTOCOL.md).
 
+Les apparitions utilisent les routes `/v2/echoes`, avec leur consentement séparé.
+Leur stockage est uniquement en mémoire : expiration après quinze minutes,
+purge périodique chaque minute, 2 000 clips au plus et trois par identité/scope.
+Leur contenu n'est jamais ajouté au répertoire des panneaux ni aux sauvegardes
+disque. Un redémarrage les perd. Les plafonds HTTP et les quotas d'identité sont
+partagés avec les panneaux. Le mod officiel attend une minute entre publications.
+
 Le protocole v2 utilise un nouveau sous-répertoire `messages-v2`. Garder les
 anciennes données v1 à part : elles ne sont ni importées ni effacées. Si
 `MULTISOLO_DATA` était défini manuellement, choisir explicitement un répertoire

@@ -31,7 +31,7 @@ dependencies {
     implementation project(':core')
     implementation project(':network')
     // These modules (and their transitive nested dependencies) ship inside our one JAR.
-    for (module in ['fabric-api-base', 'fabric-lifecycle-events-v1', 'fabric-screen-api-v1', 'fabric-resource-loader-v1']) {
+    for (module in ['fabric-api-base', 'fabric-lifecycle-events-v1', 'fabric-screen-api-v1', 'fabric-resource-loader-v1', 'fabric-rendering-v1', 'fabric-transitive-access-wideners-v1']) {
         implementation include(fabricApi.module(module, rootProject.fabric_api_version))
     }
     gametestImplementation fabricApi.module('fabric-client-gametest-api-v1', rootProject.fabric_api_version)

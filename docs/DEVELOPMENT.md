@@ -26,7 +26,7 @@ est une action explicite du menu. Aucun échange réseau n'est automatique au la
 
 ## Artefacts
 
-`fabric/build/libs/multisolo-0.1.0-dev.5.jar` est le mod de développement.
+`fabric/build/libs/multisolo-0.1.0-dev.6.jar` est le mod de développement.
 `multisolo-…-sources.jar` contient les sources. Les sorties de `core/build/`
 servent aux développeurs, pas aux joueurs.
 
@@ -42,8 +42,9 @@ Lors d'un portage, vérifier cette valeur avec un lancement réel.
 
 ## Dépendances
 
-Quatre modules Fabric API sont inclus via Loom pour le menu, le cycle de vie
-et le chargement des ressources et traductions.
+Six modules Fabric API sont inclus via Loom pour le menu, le cycle de vie,
+les ressources et l'extraction des apparitions. `fabric-rendering-v1` exige
+aussi `fabric-transitive-access-wideners-v1`, inclus explicitement.
 Gson et les API cryptographiques/HTTP Java servent au protocole. Le relais
 dispose de son propre runtime Gson. Vérifier le JAR final et tester sans Fabric
 API installé séparément. Aucun téléchargement de code au lancement du jeu.

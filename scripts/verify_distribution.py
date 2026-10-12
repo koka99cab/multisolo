@@ -39,9 +39,10 @@ def main():
                 nested_manifest = json.loads(nested.read("fabric.mod.json"))
                 nested_ids.add(nested_manifest["id"])
                 require(any("LICENSE" in name.upper() for name in nested.namelist()), "Nested license missing")
-        require(nested_ids == {"fabric-api-base", "fabric-lifecycle-events-v1", "fabric-screen-api-v1", "fabric-resource-loader-v1"},
+        require(nested_ids == {"fabric-api-base", "fabric-lifecycle-events-v1", "fabric-screen-api-v1", "fabric-resource-loader-v1", "fabric-rendering-v1", "fabric-transitive-access-wideners-v1"},
                 f"Unexpected bundled modules: {nested_ids}")
         require("assets/multisolo/lang/fr_fr.json" in names, "Client resources are missing")
+        require("io/github/koka99cab/multisolo/fabric/client/EchoController.class" in names, "Echo capture/playback is missing")
         require(not any("gametest" in name.lower() for name in names), "Test code leaked into the player JAR")
         require("LICENSE_multisolo" in names, "Mod license is missing")
         require(not any(name.startswith("net/minecraft/") for name in names),

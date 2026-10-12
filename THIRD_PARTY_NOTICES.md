@@ -13,8 +13,9 @@ Fabric Loader, Minecraft et leurs bibliothèques sont résolus par Loom ; ils ne
 sont pas redistribués dans le JAR Multisolo. Gson et SLF4J sont fournis par le
 runtime du jeu. JUnit est une dépendance de test uniquement.
 
-Le JAR joueur embarque quatre modules Fabric API : `fabric-api-base`,
-`fabric-lifecycle-events-v1`, `fabric-screen-api-v1` et `fabric-resource-loader-v1`, sous Apache-2.0,
+Le JAR joueur embarque six modules Fabric API : `fabric-api-base`,
+`fabric-lifecycle-events-v1`, `fabric-screen-api-v1`, `fabric-resource-loader-v1`,
+`fabric-rendering-v1` et sa dépendance `fabric-transitive-access-wideners-v1`, sous Apache-2.0,
 copyright FabricMC. Chaque JAR imbriqué conserve son manifeste et sa licence.
 Ils ne demandent aucune installation séparée au joueur.
 

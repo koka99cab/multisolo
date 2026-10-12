@@ -34,7 +34,13 @@ final class MultisoloScreen extends Screen {
                 localError = "multisolo.error.endpoint";
                 button.setMessage(Component.translatable(social().enabled() ? "multisolo.disable" : "multisolo.enable"));
             }
-        }).bounds(x, 89, 300, 20).build());
+        }).bounds(x, 89, 300, 20).tooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("multisolo.message.consent"))).build());
+        addRenderableWidget(Button.builder(Component.translatable(social().echoesEnabled() ? "multisolo.echo.disable" : "multisolo.echo.enable"), button -> {
+            try {
+                social().configureEchoes(!social().echoesEnabled(), endpoint.getValue());
+                minecraft.gui.setScreen(new MultisoloScreen(parent));
+            } catch (Exception exception) { localError = "multisolo.error.endpoint"; }
+        }).bounds(x, 113, 300, 20).tooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("multisolo.echo.consent"))).build());
         Button create = addRenderableWidget(Button.builder(Component.translatable("multisolo.create"), button -> createWorld())
                 .bounds(x, height - 76, 300, 20).build());
         create.active = minecraft.level == null && ExperienceWorlds.cleanProfile();
@@ -61,9 +67,10 @@ final class MultisoloScreen extends Screen {
         graphics.centeredText(font, Component.translatable("multisolo.rules"), width / 2, 32, 0xFFC5D8CC);
         graphics.text(font, Component.translatable("multisolo.relay"), width / 2 - 150, 52, 0xFFFFFFFF);
         String error = localError.isEmpty() ? social().errorKey() : localError;
-        if (!error.isEmpty()) graphics.textWithWordWrap(font, Component.translatable(error), width / 2 - 150, 114, 300, 0xFFFF7777);
-        else if (!ExperienceWorlds.cleanProfile()) graphics.textWithWordWrap(font, Component.translatable("multisolo.error.profile"), width / 2 - 150, 114, 300, 0xFFFFBB77);
-        else graphics.textWithWordWrap(font, Component.translatable("multisolo.consent"), width / 2 - 150, 114, 300, 0xFFCCCCCC);
+        if (error.isEmpty()) error = MultisoloClient.ECHOES.errorKey();
+        if (!error.isEmpty()) graphics.textWithWordWrap(font, Component.translatable(error), width / 2 - 150, 138, 300, 0xFFFF7777);
+        else if (!ExperienceWorlds.cleanProfile()) graphics.textWithWordWrap(font, Component.translatable("multisolo.error.profile"), width / 2 - 150, 138, 300, 0xFFFFBB77);
+        else graphics.textWithWordWrap(font, Component.translatable("multisolo.consent"), width / 2 - 150, 138, 300, 0xFFCCCCCC);
     }
     @Override public void onClose() { minecraft.gui.setScreen(parent); }
 }

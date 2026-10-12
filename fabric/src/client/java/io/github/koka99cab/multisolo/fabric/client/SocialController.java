@@ -61,10 +61,21 @@ public final class SocialController {
                 .orElse(new Protocol.MessageView(message, 0, 0, 0));
     }
     public String identityId() { return identity == null ? "" : identity.id(); }
+    public boolean echoesEnabled() { return settings.echoesEnabled(); }
+    synchronized NetworkIdentity networkIdentity() throws Exception {
+        if (identity == null) identity = NetworkIdentity.loadOrCreate(directory.resolve("identity.json"));
+        return identity;
+    }
 
     public void configure(boolean enabled, String endpoint) throws Exception {
-        SocialSettings next = new SocialSettings(2, enabled, endpoint.strip());
-        if (!enabled) {
+        configurePreferences(enabled, echoesEnabled(), endpoint);
+    }
+    public void configureEchoes(boolean enabled, String endpoint) throws Exception {
+        configurePreferences(enabled(), enabled, endpoint);
+    }
+    private void configurePreferences(boolean messages, boolean echoes, String endpoint) throws Exception {
+        SocialSettings next = new SocialSettings(3, messages, echoes, endpoint.strip());
+        if ((!messages && enabled()) || (!echoes && echoesEnabled()) || (!messages && !echoes)) {
             // Revocation takes effect even if a full/read-only disk prevents persistence.
             cancel();
             settings = next;
@@ -91,6 +102,7 @@ public final class SocialController {
 
     private void cancel() {
         MultisoloClient.REMOTE_SIGNS.cancelPending();
+        MultisoloClient.ECHOES.reset();
         generation++;
         if (pending != null) pending.cancel(true);
         RelayClient active = transport;
@@ -129,7 +141,7 @@ public final class SocialController {
         errorKey = "";
         pending = worker.submit(() -> {
             try {
-                if (identity == null) identity = NetworkIdentity.loadOrCreate(directory.resolve("identity.json"));
+                networkIdentity();
                 try (RelayClient relay = new RelayClient(URI.create(endpoint), identity)) {
                     transport = relay;
                     if (Thread.currentThread().isInterrupted()) return;

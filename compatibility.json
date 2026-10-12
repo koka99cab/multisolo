@@ -25,7 +25,7 @@
     "settings_menu": "experimental",
     "network_identity": "implemented",
     "messages": "experimental",
-    "echoes": "planned",
+    "echoes": "experimental",
     "assistance": "planned",
     "relay": "implemented",
     "phantom_signs": "experimental",

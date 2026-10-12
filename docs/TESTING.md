@@ -20,7 +20,7 @@ puis vérifie que l'initialiseur Multisolo a chargé le catalogue. Elle laisse
 `eula=false` : le serveur s'arrête avant de démarrer un monde. Ce contrôle attrape
 les erreurs de résolution du manifeste sans prétendre valider une partie en jeu.
 Le vérificateur de distribution contrôle les dépendances et les classes `core`
-et les quatre modules Fabric API embarqués dans le JAR réellement produit.
+et les six modules Fabric API embarqués dans le JAR réellement produit.
 
 ## Test client automatisé
 
@@ -46,9 +46,17 @@ ainsi que la lecture des anciennes préférences sans réinitialiser le consente
 est nécessaire. Le profil est isolé dans `build/` ; aucune sauvegarde personnelle
 n'est utilisée. Les bibliothèques de test ne sont pas livrées aux joueurs.
 
+L'extension dev.6 teste aussi le bouton de consentement des apparitions, indépendant
+des panneaux, et les anciennes préférences qui ne doivent jamais l'activer.
+Une seconde identité publie un passage avec geste de pioche et accroupissement :
+le test vérifie les états d'avatar du renderer natif, le fondu, l'outil générique,
+l'absence de joueur ajouté aux mondes, la capture du geste local, sa réception HTTP
+par l'autre identité et l'effacement immédiat après révocation. La capture
+`connected-solitude-echo` permet un contrôle visuel du vrai client.
+
 ## Essais en jeu avant déclaration de compatibilité
 
-Appliquer les lignes v0.1 dès maintenant ; les essais invités/échos restent futurs.
+Appliquer les lignes v0.1 et échos dès maintenant ; les essais invités restent futurs.
 Tant que les essais de distribution et de réseau distant ne sont pas réalisés,
 garder `gameplay_ready` à `false` et ne pas annoncer de release complète.
 
@@ -68,6 +76,11 @@ garder `gameplay_ready` à `false` et ne pas annoncer de release complète.
 | Expiration et votes | Base 7 jours, score net en jours, bornes 1/30, aucune résurrection par vote |
 | Copie expirée encore visible, puis caméra détournée | Retrait différé ; archive relay conservée, panneau d'auteur intact |
 | Copie expirée sauvegardée puis rechargée | Nettoyage avant réception du chunk, sans blocage |
+| Apparitions désactivées ou anciennes préférences | Aucune capture ni requête d'écho, panneaux indépendants |
+| Capture et lecture depuis une autre identité | Trajectoire, regard, accroupissement et gestes rejoués, aucune entité de jeu ajoutée |
+| Séquence trop longue, téléportation ou outil inconnu | Requête refusée ; scope/version/dimension isolés |
+| Expiration ou redémarrage du relais | Échos retirés, aucun fichier de mouvement archivé |
+| Révocation pendant capture/lecture | Capture et rendu locaux effacés, réponse en vol ignorée |
 | Menu FR/EN et petite fenêtre | Boutons lisibles, brouillon conservé après erreur réseau |
 | Autre version, seed, révision, dimension ou worldgen | Aucun mélange de messages, échos ou sessions |
 | Invité : ramassage, dépôt, coffre, craft, XP, blocs, commandes | Refus côté serveur, y compris par paquets directs |

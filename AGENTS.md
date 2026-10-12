@@ -53,8 +53,9 @@ Documentation et échanges : français. Identifiants de code et commits : anglai
 Garder le README honnête sur ce qui est réellement jouable.
 
 La v0.1 « Connected Solitude » fixe la seed 0 (origine révision 2), le spawn
-vanilla, l'identité réseau et les messages persistants géolocalisés. Échos et
-entraide sont ultérieurs. Le support de toutes les versions Java à partir de
+vanilla, l'identité réseau et les messages persistants géolocalisés. Les échos
+expérimentaux sont autorisés depuis dev.6 ; l'entraide reste ultérieure.
+Le support de toutes les versions Java à partir de
 26.1 est un objectif ; ne pas élargir le manifeste sans valider chaque portage.
 
 Les messages v2 partent d'un panneau vanilla posé, dans son menu natif : quatre
@@ -66,3 +67,10 @@ une seconde ; nettoyer les copies expirées avant l'envoi d'un chunk rechargé.
 Ces copies ne donnent aucun loot. Ne jamais retirer le panneau posé par l'auteur.
 La durée depuis publication vaut 7 + upvotes - downvotes jours, bornée de 1 à 30 ;
 conserver les archives du relais après expiration. Voir la décision 0004.
+
+Les échos exigent un consentement distinct, désactivé par défaut et jamais déduit
+des préférences anciennes. Capturer uniquement des mouvements/gestes bornés et
+une catégorie d'outil : aucun pseudo, URL de skin, inventaire ou action de bloc.
+Le rendu utilise des états d'avatar détachés ; ne jamais ajouter d'entité de jeu.
+Huit secondes maximum par séquence, au plus une publication par minute ; TTL
+de quinze minutes en mémoire sur le relais, sans archive. Voir la décision 0005.
