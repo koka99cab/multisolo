@@ -17,8 +17,10 @@ correspondant au travail : `docs/ARCHITECTURE.md` ou `docs/MAINTENANCE.md`.
 ## Frontières du code
 
 - `core` : Java pur, pas d'import `net.minecraft`, `net.fabricmc` ou de réseau.
+- `network` : identité, protocole et client HTTP sans dépendance au jeu.
+- `relay` : service autonome et stockage des messages ; jamais embarqué dans le mod.
 - `fabric/src/main` : adaptateur serveur/commun ; aucune classe client ici.
-- `fabric/src/client` : futur rendu et menu ; ne pas créer de faux écran fonctionnel.
+- `fabric/src/client` : menu et consentement ; aucune requête sur le thread du jeu.
 - `fabric/src/main/resources/data/multisolo/experiences` : catalogue embarqué.
 - Ne pas ajouter de mixin sans expliquer pourquoi un événement/API ne suffit pas.
 - Préférer les modules Fabric API strictement nécessaires, embarqués par Loom,
@@ -49,3 +51,26 @@ Préserver le format du protocole et des sauvegardes ou documenter leur migratio
 
 Documentation et échanges : français. Identifiants de code et commits : anglais.
 Garder le README honnête sur ce qui est réellement jouable.
+
+La v0.1 « Connected Solitude » fixe la seed 0 (origine révision 2), le spawn
+vanilla, l'identité réseau et les messages persistants géolocalisés. Les échos
+expérimentaux sont autorisés depuis dev.6 ; l'entraide reste ultérieure.
+Le support de toutes les versions Java à partir de
+26.1 est un objectif ; ne pas élargir le manifeste sans valider chaque portage.
+
+Les messages v2 partent d'un panneau vanilla posé, dans son menu natif : quatre
+lignes de catalogue uniquement, rendu couleur vanilla et votes. Aucun chat ni signalement.
+Chez le destinataire, créer uniquement des copies temporaires marquées de panneaux
+vanilla, dans de l'air sans fluide et sur un support valide. Ne jamais remplacer
+une construction. Placement et retrait exigent une position hors champ pendant
+une seconde ; nettoyer les copies expirées avant l'envoi d'un chunk rechargé.
+Ces copies ne donnent aucun loot. Ne jamais retirer le panneau posé par l'auteur.
+La durée depuis publication vaut 7 + upvotes - downvotes jours, bornée de 1 à 30 ;
+conserver les archives du relais après expiration. Voir la décision 0004.
+
+Les échos exigent un consentement distinct, désactivé par défaut et jamais déduit
+des préférences anciennes. Capturer uniquement des mouvements/gestes bornés et
+une catégorie d'outil : aucun pseudo, URL de skin, inventaire ou action de bloc.
+Le rendu utilise des états d'avatar détachés ; ne jamais ajouter d'entité de jeu.
+Huit secondes maximum par séquence, au plus une publication par minute ; TTL
+de quinze minutes en mémoire sur le relais, sans archive. Voir la décision 0005.

@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "io.github.koka99cab.multisolo.fabric.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "mixins": [
+    "ExperienceDifficultyMixin",
+    "PhantomSignDataMixin",
+    "RemoteSignDropsMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

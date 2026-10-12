@@ -7,6 +7,8 @@ accessible dans `PATH` ou via `JAVA_HOME`. Python 3.11+ sert aux outils du dép�
 ```powershell
 .\gradlew.bat build
 .\gradlew.bat :core:test
+.\gradlew.bat :relay:test
+.\gradlew.bat :relay:run
 .\gradlew.bat :fabric:runClient
 python scripts/verify_repository.py
 python -m unittest discover -s scripts/tests
@@ -19,11 +21,12 @@ la configuration du système.
 
 `fabric/run/` contient le profil de développement : il est ignoré par Git.
 Ne jamais y copier sa seule sauvegarde personnelle. La tâche `runClient`
-ne crée pas encore de monde Multisolo et ne propose pas encore de menu.
+propose le bouton Multisolo dans l'accueil et la pause. La création d'expérience
+est une action explicite du menu. Aucun échange réseau n'est automatique au lancement.
 
 ## Artefacts
 
-`fabric/build/libs/multisolo-0.1.0-dev.1.jar` est le mod de développement.
+`fabric/build/libs/multisolo-0.1.0-dev.6.jar` est le mod de développement.
 `multisolo-…-sources.jar` contient les sources. Les sorties de `core/build/`
 servent aux développeurs, pas aux joueurs.
 
@@ -39,7 +42,13 @@ Lors d'un portage, vérifier cette valeur avec un lancement réel.
 
 ## Dépendances
 
-Le socle utilise uniquement Fabric Loader et les bibliothèques du jeu. Ajouter
-Fabric API seulement pour une fonctionnalité concrète, avec ses modules
-nécessaires inclus via Loom. Vérifier le JAR final et tester sans Fabric API
-installé séparément. Éviter les téléchargements de code au lancement du jeu.
+Six modules Fabric API sont inclus via Loom pour le menu, le cycle de vie,
+les ressources et l'extraction des apparitions. `fabric-rendering-v1` exige
+aussi `fabric-transitive-access-wideners-v1`, inclus explicitement.
+Gson et les API cryptographiques/HTTP Java servent au protocole. Le relais
+dispose de son propre runtime Gson. Vérifier le JAR final et tester sans Fabric
+API installé séparément. Aucun téléchargement de code au lancement du jeu.
+
+`:fabric:runClientGameTest` lance le test client avec un profil de test séparé
+dans `fabric/build/`, via Fabric Client Game Test API. Ce code et ses dépendances
+ne sont pas inclus dans le JAR joueur. Les tests serveur dédiés gardent `eula=false`.

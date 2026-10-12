@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "io.github.koka99cab.multisolo.fabric.client.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "SignEditorMixin",
+    "SignRendererMixin",
+    "SignInteractionMixin",
+    "EchoOpacityMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

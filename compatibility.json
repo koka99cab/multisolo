@@ -3,20 +3,36 @@
   "schema_version": 1,
   "target_series": "26.4",
   "update_channel": "preview",
-  "protocol_version": 1,
-  "stage": "foundation",
+  "protocol_version": 2,
+  "release_name": "Connected Solitude",
+  "support_goal": {
+    "minimum_java_edition": "26.1",
+    "policy": "separately_verified_builds",
+    "cross_version_messages": false
+  },
+  "stage": "alpha",
   "gameplay_ready": false,
   "validated_game_versions": [],
-  "required_player_mods": ["multisolo"],
+  "required_player_mods": [
+    "multisolo"
+  ],
   "runtime_prerequisite": "Fabric Loader",
   "features": {
     "experience_model": "implemented",
     "guest_policy_model": "implemented",
-    "world_rule_enforcement": "planned",
-    "settings_menu": "planned",
-    "messages": "planned",
-    "echoes": "planned",
+    "world_creation_seed_0": "experimental",
+    "world_rule_enforcement": "experimental",
+    "settings_menu": "experimental",
+    "network_identity": "implemented",
+    "messages": "experimental",
+    "echoes": "experimental",
     "assistance": "planned",
-    "relay": "planned"
+    "relay": "implemented",
+    "phantom_signs": "experimental",
+    "preset_writing": "implemented",
+    "message_votes": "experimental",
+    "automatic_sign_placement": "experimental",
+    "vote_adjusted_lifetime": "experimental",
+    "sign_hex_color": "planned"
   }
 }

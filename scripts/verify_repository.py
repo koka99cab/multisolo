@@ -31,7 +31,7 @@ def main():
 
     experience_schema = json.loads((ROOT / "schemas/experience.schema.json").read_text(encoding="utf-8"))
     experiences = list((ROOT / "fabric/src/main/resources/data/multisolo/experiences").glob("*.json"))
-    require(len(experiences) == 1, "Foundation starts with exactly one experience")
+    require(len(experiences) == 1, "Connected Solitude starts with exactly one experience")
     for path in experiences:
         data = json.loads(path.read_text(encoding="utf-8"))
         require(set(data) == set(experience_schema["required"]), f"Unexpected experience fields: {path}")
@@ -43,11 +43,27 @@ def main():
         require(data["difficulty"] in {"PEACEFUL", "EASY", "NORMAL", "HARD"}, "Invalid difficulty")
         require(data["spawn"] == "vanilla", "Vanilla spawn must be preserved")
         require(data["worldgen_mods"] == {}, "Origin requires no worldgen mods")
+        require(data["seed"] == "0" and data["revision"] == 2, "Connected Solitude requires seed 0, revision 2")
 
     manifest = json.loads((ROOT / "fabric/src/main/resources/fabric.mod.json").read_text(encoding="utf-8"))
     require(set(manifest["depends"]) == {"fabricloader", "minecraft", "java"}, "Unexpected external mod requirement")
     require(manifest["depends"]["minecraft"] == "=${minecraft_dependency_version}", "Minecraft must be an exact target")
     require(properties["minecraft_dependency_version"], "Loader's normalized version is required")
+    languages = ROOT / "fabric/src/client/resources/assets/multisolo/lang"
+    french = json.loads((languages / "fr_fr.json").read_text(encoding="utf-8"))
+    english = json.loads((languages / "en_us.json").read_text(encoding="utf-8"))
+    require(french.keys() == english.keys(), "FR/EN translations differ")
+    for path in (ROOT / "fabric/src/client/java").rglob("*.java"):
+        for key in re.findall(r'"(multisolo\.[a-z.]+)"', path.read_text(encoding="utf-8")):
+            if key.endswith("."):
+                continue  # Dynamic enum keys are checked against the closed catalog below.
+            require(key in french, f"Missing UI translation: {key}")
+
+    catalog = (ROOT / "core/src/main/java/io/github/koka99cab/multisolo/core/message/MessagePhrase.java").read_text(encoding="utf-8")
+    entries = re.search(r"enum Line\s*\{([^}]+)\}", catalog).group(1)
+    for entry in entries.split(","):
+        key = "multisolo.phrase.line." + entry.strip().lower()
+        require(key in french and key in english, f"Missing catalog translation: {key}")
 
     for path in (ROOT / "core/src").rglob("*.java"):
         source = path.read_text(encoding="utf-8")

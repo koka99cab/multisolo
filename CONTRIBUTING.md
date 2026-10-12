@@ -15,8 +15,8 @@ permissions ou format de sauvegarde nécessite une justification et des tests
 des invariants concernés. Les changements d'architecture vont dans `docs/decisions/`.
 
 Ne pas ajouter de nouveau mod obligatoire pour les joueurs. Le menu Multisolo
-doit rester accessible sans Mod Menu. Traductions françaises et anglaises seront
-ajoutées avec le premier écran, sans textes dispersés dans le code.
+doit rester accessible sans Mod Menu. Garder les traductions françaises et
+anglaises complètes pour chaque écran, sans textes dispersés dans le code.
 
 Le code original est sous [MIT](LICENSE). Conserver les licences et notices
 des composants tiers. Ne jamais inclure de sauvegarde personnelle, jeton ou

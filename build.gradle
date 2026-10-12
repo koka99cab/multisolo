@@ -8,9 +8,9 @@ allprojects {
 }
 
 tasks.named('check') {
-    dependsOn ':core:check', ':fabric:check'
+    dependsOn ':core:check', ':network:check', ':relay:check', ':fabric:check'
 }
 
 tasks.named('assemble') {
-    dependsOn ':core:assemble', ':fabric:assemble'
+    dependsOn ':core:assemble', ':network:assemble', ':relay:assemble', ':fabric:assemble'
 }

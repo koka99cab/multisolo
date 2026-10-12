@@ -1,0 +1,15 @@
+plugins { id 'java-library' }
+repositories { mavenCentral() }
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(rootProject.java_version)
+    withSourcesJar()
+}
+dependencies {
+    api project(':core')
+    implementation "com.google.code.gson:gson:${rootProject.gson_version}"
+    testImplementation platform("org.junit:junit-bom:${rootProject.junit_version}")
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+test { useJUnitPlatform() }

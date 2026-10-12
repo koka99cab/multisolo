@@ -20,6 +20,13 @@ aucun partenariat ou classement de « meilleurs mods » n'est revendiqué.
   cible `26.4-snapshot-3`, release stable `26.3`, runtime Java 25 pour la cible.
 - [Options Loom](https://docs.fabricmc.net/develop/loom/options) : source sets et
   inclusion de dépendances pour conserver un seul JAR joueur.
+- [Tests automatisés Fabric](https://docs.fabricmc.net/develop/automatic-testing) :
+  test client dans un profil séparé, sans empaqueter le test dans le mod joueur.
+- [Fabric API Maven](https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/0.162.2+26.4/) :
+  versions exactes des modules nécessaires à la cible actuelle.
+- [Rendu dans le monde, Fabric](https://docs.fabricmc.net/develop/rendering/world) :
+  séparation extraction/dessin ; les signatures utilisées par les échos sont
+  vérifiées dans les sources du module de rendu exact résolu pour cette snapshot.
 
 La conversation de conception fournie par l'auteur confirme la seed commune,
 les mondes séparés, les messages, les rencontres et l'inventaire invité verrouillé.
