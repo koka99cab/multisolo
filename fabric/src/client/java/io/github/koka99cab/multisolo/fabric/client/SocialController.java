@@ -4,7 +4,6 @@ import io.github.koka99cab.multisolo.core.experience.CompatibilityKey;
 import io.github.koka99cab.multisolo.core.message.LocatedMessage;
 import io.github.koka99cab.multisolo.core.message.MessagePosition;
 import io.github.koka99cab.multisolo.core.message.PhantomSign;
-import io.github.koka99cab.multisolo.core.message.SignColor;
 import io.github.koka99cab.multisolo.fabric.ExperienceCatalog;
 import io.github.koka99cab.multisolo.fabric.ExperienceWorlds;
 import io.github.koka99cab.multisolo.fabric.PhantomSignData;
@@ -59,16 +58,10 @@ public final class SocialController {
         return views.stream().filter(view -> view.message().id().equals(message.id())).findFirst()
                 .orElse(new Protocol.MessageView(message, 0, 0, 0));
     }
-    public SignColor signColor() { return SignColor.parse(settings.signColor()); }
-    public void saveSignColor(String hex) throws Exception {
-        SocialSettings next = new SocialSettings(2, enabled(), endpoint(), SignColor.parse(hex).hex());
-        next.save(directory.resolve("social.json"));
-        settings = next;
-    }
     public String identityId() { return identity == null ? "" : identity.id(); }
 
     public void configure(boolean enabled, String endpoint) throws Exception {
-        SocialSettings next = new SocialSettings(2, enabled, endpoint.strip(), settings.signColor());
+        SocialSettings next = new SocialSettings(2, enabled, endpoint.strip());
         if (!enabled) {
             // Revocation takes effect even if a full/read-only disk prevents persistence.
             cancel();

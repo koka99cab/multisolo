@@ -58,6 +58,6 @@ entraide sont ultérieurs. Le support de toutes les versions Java à partir de
 26.1 est un objectif ; ne pas élargir le manifeste sans valider chaque portage.
 
 Les messages v2 partent d'un panneau vanilla posé, dans son menu natif : quatre
-lignes de catalogue uniquement, couleur RGB et votes. Aucun chat ni signalement.
+lignes de catalogue uniquement, rendu couleur vanilla et votes. Aucun chat ni signalement.
 Ne jamais créer de blocs dans les sauvegardes destinataires ; leur panneau
 existant sert uniquement de support de rendu, sans écriture du texte distant.

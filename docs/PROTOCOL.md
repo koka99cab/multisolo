@@ -36,14 +36,17 @@ Corps PUT (exemple) :
 {
   "scope": {"experience": {"id":"multisolo:origin","revision":2,"seed":0,"difficulty":"NORMAL","worldgenMods":{}},"minecraftVersion":"26.4-snapshot-3","protocolVersion":2,"dimension":"minecraft:overworld"},
   "position": {"x":0,"y":64,"z":0},
-  "sign": {"phrase":{"lines":["BEWARE","LAVA","BUT","TREASURE"]},"color":{"rgb":1223663},"face":"FRONT"}
+  "sign": {"phrase":{"lines":["BEWARE","LAVA","BUT","TREASURE"]},"color":{"rgb":0},"face":"FRONT"}
 }
 ```
 
 `position` désigne le bloc du panneau posé. `face` vaut FRONT ou BACK. Les quatre
 lignes doivent être des valeurs de `MessagePhrase.Line` ; aucun texte utilisateur
-n'est transmis. EMPTY permet une ligne vide, mais pas quatre lignes vides. La
-couleur RGB opaque va de 0 à 16777215. Les traductions sont locales au client.
+n'est transmis. EMPTY permet une ligne vide, mais pas quatre lignes vides. Les
+traductions sont locales au client. Le champ historique `color.rgb` reste validé
+entre 0 et 16777215 pour conserver le format v2 et les publications déjà stockées.
+Depuis dev.4, les nouvelles publications l'émettent à 0 et le client ignore toute
+couleur reçue : le panneau utilise sa teinture et sa luminosité vanilla.
 Dans ce protocole Java, la seed est un entier long ; le catalogue interopérable
 du dépôt la conserve comme chaîne. La seule seed acceptée ici est zéro.
 

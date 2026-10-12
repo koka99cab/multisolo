@@ -23,7 +23,7 @@ Les cases décrivent du travail vérifiable. Elles n'annoncent aucune date.
 - [ ] Valider l'installation du JAR distribué seul sur un second profil/poste.
 - [ ] Choisir le VPS OVH et le domaine, tester le relais HTTPS entre deux machines.
 - [x] Écriture fermée : quatre lignes prédéfinies, validées côté relais, sans signalement.
-- [x] Menu du panneau vanilla, couleur hexadécimale et votes persistants.
+- [x] Menu du panneau vanilla, couleur de base et votes persistants.
 - [ ] Tests de charge et quotas globaux avant accès public ouvert.
 
 ## Après v0.1 — Présence asynchrone enrichie

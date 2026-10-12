@@ -39,7 +39,7 @@ final class MessageScreen extends Screen {
         graphics.centeredText(font, title, width / 2, 16, 0xFFFFFFFF);
         graphics.text(font, Component.translatable("multisolo.identity", message.authorId().substring(0, 12)), x, 36, 0xFFCCCCCC);
         graphics.text(font, message.position().x() + ", " + message.position().y() + ", " + message.position().z(), x, 50, 0xFFC5D8CC);
-        for (int i = 0; i < 4; i++) graphics.text(font, PhraseText.line(message.sign().phrase().lines().get(i)), x, 70 + i * 12, 0xFF000000 | message.sign().color().rgb());
+        for (int i = 0; i < 4; i++) graphics.text(font, PhraseText.line(message.sign().phrase().lines().get(i)), x, 70 + i * 12, 0xFFFFFFFF);
         var view = MultisoloClient.SOCIAL.view(message);
         graphics.text(font, Component.translatable("multisolo.vote.current", view.ownVote()), x, height - 76, 0xFFCCCCCC);
         if (!status.isEmpty()) graphics.textWithWordWrap(font, Component.translatable(status), x, height - 124, 300, 0xFFFF7777);

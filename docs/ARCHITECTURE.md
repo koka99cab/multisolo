@@ -72,7 +72,9 @@ d'autorité du relais.
 ## Panneaux vanilla
 
 `MessagePhrase` impose exactement quatre identifiants de catalogue ; `PhantomSign`
-ajoute face et couleur RGB. Le relais valide le même modèle. Les votes sont
+ajoute la face. Le champ RGB historique reste dans le format v2 pour relire les
+publications existantes, mais le rendu conserve la teinture et la luminosité
+vanilla du panneau local. Le relais valide le même modèle. Les votes sont
 persistés séparément de la publication immuable, un vote par identité.
 
 `SignEditorSession` ajoute les contrôles à `AbstractSignEditScreen`, sans écran de

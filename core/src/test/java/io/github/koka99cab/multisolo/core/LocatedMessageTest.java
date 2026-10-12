@@ -1,7 +1,6 @@
 package io.github.koka99cab.multisolo.core;
 
 import io.github.koka99cab.multisolo.core.message.MessagePhrase;
-import io.github.koka99cab.multisolo.core.message.SignColor;
 import io.github.koka99cab.multisolo.core.message.MessagePosition;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -16,12 +15,6 @@ class LocatedMessageTest {
         mutable.set(0, MessagePhrase.Line.EMPTY);
         assertEquals(MessagePhrase.Line.BEWARE, phrase.lines().getFirst());
         assertThrows(UnsupportedOperationException.class, () -> phrase.lines().set(0, MessagePhrase.Line.EMPTY));
-    }
-    @Test void hexColorIsNormalizedAndRejectsInvalidOrNonOpaqueFormats() {
-        assertEquals("#12ABEF", SignColor.parse("12abef").hex());
-        assertEquals(0xFFFFFF, SignColor.parse("#FFFFFF").rgb());
-        for (String invalid : new String[]{"#fff", "#12345678", "#gg0000", "red", "-123456", "#12345;"})
-            assertThrows(IllegalArgumentException.class, () -> SignColor.parse(invalid));
     }
     @Test void distanceUsesThreeDimensionsAndDoesNotOverflowAtWorldBorder() {
         assertEquals(25, new MessagePosition(0, 0, 0).distanceSquared(new MessagePosition(0, 3, 4)));

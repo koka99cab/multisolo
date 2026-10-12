@@ -29,6 +29,7 @@ public abstract class SignEditorMixin extends Screen implements PhantomSignEdito
     @Shadow @Final protected SignBlockEntity sign;
     @Shadow @Final private SignTextSlot slot;
     @Shadow @Final private String[] messages;
+    @Shadow @Final private int textColor;
     @Unique private SignEditorSession multisolo$session;
     @Unique private LocatedMessage multisolo$viewer;
     protected SignEditorMixin(Component title) { super(title); }
@@ -60,7 +61,7 @@ public abstract class SignEditorMixin extends Screen implements PhantomSignEdito
     @Inject(method = "extractSignText", at = @At("HEAD"), cancellable = true)
     private void multisolo$preview(GuiGraphicsExtractor graphics, Vector2f cursor, CallbackInfo ci) {
         if (multisolo$session != null && multisolo$session.active()) {
-            multisolo$session.preview(graphics); ci.cancel();
+            multisolo$session.preview(graphics, textColor); ci.cancel();
         }
     }
     @Inject(method = "removed", at = @At("HEAD"), cancellable = true)

@@ -5,8 +5,11 @@ Statut : accepté, 12 octobre 2026.
 Le chat est abandonné. Le joueur pose un vrai panneau vanilla et sélectionne
 le mode fantôme dans son menu habituel, uniquement dans Multisolo. Il compose
 quatre lignes dans un catalogue fermé. Le relais refuse toute ligne inconnue,
-les listes de taille différente et les panneaux totalement vides. La couleur
-hexadécimale choisie avant connexion accompagne chaque publication.
+les listes de taille différente et les panneaux totalement vides. Le choix de
+couleur Multisolo est retiré pour le moment : le texte utilise la couleur
+vanilla du panneau local. L'ancien champ RGB est conservé dans le protocole v2
+pour lire les données existantes, mais il est ignoré au rendu. Les préférences
+existantes gardent leur relais et leur consentement ; seule la couleur disparaît.
 
 Les autres sauvegardes ne reçoivent aucun nouveau bloc. Le rendu utilise un
 panneau existant vierge au même XYZ/face, sans changer son texte ni son état

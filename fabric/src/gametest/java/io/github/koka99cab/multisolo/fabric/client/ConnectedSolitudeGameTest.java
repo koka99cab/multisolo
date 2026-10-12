@@ -55,6 +55,12 @@ public final class ConnectedSolitudeGameTest implements FabricClientGameTest {
                 SocialSettings.load(invalidSettings);
                 throw new AssertionError("Null preferences must fail closed");
             } catch (java.io.IOException expected) { check(Files.readString(invalidSettings).equals("null"), "Invalid preferences were rewritten"); }
+            Files.writeString(invalidSettings, "{\"schemaVersion\":2,\"messagesEnabled\":true,\"relay\":\"http://127.0.0.1:8787\",\"signColor\":\"#12ABEF\"}");
+            var legacySettings = SocialSettings.load(invalidSettings);
+            check(legacySettings.messagesEnabled() && legacySettings.relay().equals("http://127.0.0.1:8787"), "Removing color reset existing consent or relay preferences");
+            legacySettings.save(invalidSettings);
+            check(!Files.readString(invalidSettings).contains("signColor"), "Obsolete color preference was saved again");
+            Files.delete(invalidSettings);
             context.setScreen(TitleScreen::new);
             context.clickScreenButton("Multisolo");
             context.waitForScreen(MultisoloScreen.class);
@@ -85,7 +91,6 @@ public final class ConnectedSolitudeGameTest implements FabricClientGameTest {
                 String endpoint = "http://127.0.0.1:" + relay.port();
                 placeSign(context, signPosition);
                 context.runOnClient(client -> {
-                    MultisoloClient.SOCIAL.saveSignColor("#12abef");
                     MultisoloClient.SOCIAL.configure(true, endpoint);
                     client.gui.setScreen(new SignEditScreen((SignBlockEntity) client.level.getBlockEntity(signPosition), SignTextSlot.FRONT, false));
                 });
@@ -109,7 +114,8 @@ public final class ConnectedSolitudeGameTest implements FabricClientGameTest {
                 check(context.computeOnClient(client -> MultisoloClient.SOCIAL.errorKey().isEmpty()), "Publication error: " + context.computeOnClient(client -> MultisoloClient.SOCIAL.errorKey()));
                 var located = context.computeOnClient(client -> MultisoloClient.SOCIAL.messages().getFirst());
                 check(located.position().equals(new MessagePosition(signPosition.getX(), signPosition.getY(), signPosition.getZ())), "Publication used player position instead of the placed sign");
-                check(located.sign().phrase().lines().size() == 4 && located.sign().color().rgb() == 0x12ABEF, "Four lines or chosen hex color were lost");
+                check(located.sign().phrase().lines().size() == 4, "Four shared lines were lost");
+                check(located.sign().color().rgb() == 0, "New publication did not neutralize the legacy color field");
                 context.waitFor(client -> ((PhantomSignData) client.level.getBlockEntity(signPosition)).multisolo$message(SignTextSlot.FRONT) != null, 600);
                 try (RelayClient other = new RelayClient(URI.create(endpoint), NetworkIdentity.generate())) {
                     var scope = new CompatibilityKey(ExperienceCatalog.origin(), ExperienceWorlds.gameVersion(), Protocol.VERSION, "minecraft:overworld");
@@ -119,7 +125,7 @@ public final class ConnectedSolitudeGameTest implements FabricClientGameTest {
                     placeSign(context, receiverPosition);
                     var remote = other.publish(UUID.randomUUID(), scope,
                             new MessagePosition(receiverPosition.getX(), receiverPosition.getY(), receiverPosition.getZ()),
-                            new PhantomSign(MessagePhrase.example(), SignColor.parse("#FE1288"), PhantomSign.Face.FRONT));
+                            new PhantomSign(MessagePhrase.example(), new SignColor(0xFE1288), PhantomSign.Face.FRONT));
                     AtomicBoolean read = new AtomicBoolean();
                     context.runOnClient(client -> MultisoloClient.SOCIAL.refresh(client, read::set));
                     context.waitFor(client -> read.get(), 600);
@@ -128,8 +134,15 @@ public final class ConnectedSolitudeGameTest implements FabricClientGameTest {
                         var original = block.getText(SignTextSlot.FRONT);
                         var overlay = PhantomSignMenus.display(block, SignTextSlot.FRONT);
                         check(overlay.getMessages(false).getFirst().getString().equals(PhraseText.line(MessagePhrase.Line.BEWARE).getString()), "Preset text was not rendered on the real vanilla sign");
-                        check(overlay.getMessages(false).getFirst().getStyle().getColor().getValue() == 0xFE1288, "Author color did not reach sign rendering");
+                        check(overlay.getMessages(false).stream().allMatch(line -> line.getStyle().getColor() == null), "Legacy author color overrode vanilla sign text");
+                        check(overlay.getColor() == net.minecraft.world.item.DyeColor.BLACK && !overlay.hasGlowingText(), "Default vanilla sign color changed");
                         check(block.getText(SignTextSlot.FRONT).equals(original), "Reading remote text mutated the receiving block");
+                        var dyed = original.withColor(net.minecraft.world.item.DyeColor.BLUE).withGlowingText(true);
+                        block.setText(dyed, SignTextSlot.FRONT);
+                        var dyedOverlay = PhantomSignMenus.display(block, SignTextSlot.FRONT);
+                        check(dyedOverlay.getColor() == dyed.getColor() && dyedOverlay.hasGlowingText(), "Vanilla dye or glow was overridden");
+                        check(block.getText(SignTextSlot.FRONT).equals(dyed), "Reading dyed text mutated the receiving block");
+                        block.setText(original, SignTextSlot.FRONT);
                         PhantomSignMenus.openViewer(client, block, SignTextSlot.FRONT, remote);
                     });
                     context.takeScreenshot("connected-solitude-sign-votes");
@@ -158,7 +171,7 @@ public final class ConnectedSolitudeGameTest implements FabricClientGameTest {
             context.runOnClient(client -> {
                 var block = (SignBlockEntity) client.level.getBlockEntity(signPosition);
                 var saved = ((PhantomSignData) block).multisolo$message(SignTextSlot.FRONT);
-                check(saved != null && saved.sign().phrase().equals(MessagePhrase.example()) && saved.sign().color().rgb() == 0x12ABEF, "Phantom metadata was not saved on the actual vanilla sign");
+                check(saved != null && saved.sign().phrase().equals(MessagePhrase.example()), "Phantom metadata was not saved on the actual vanilla sign");
                 check(block.getText(SignTextSlot.FRONT).hasMessage(false), "Vanilla sign text was lost after reloading");
             });
             disconnect(context);

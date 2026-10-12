@@ -66,7 +66,7 @@ copier tout son répertoire de données/volume, puis redémarrer. Tester une
 restauration dans un autre répertoire. Ne pas lancer deux instances sur ce volume.
 
 Les messages sont publics **aux utilisateurs du relais et du scope compatible**.
-L'opérateur voit leurs identifiants de phrases, votes, couleur, identité publique, coordonnées et l'adresse IP des
+L'opérateur voit leurs identifiants de phrases, votes, identité publique, coordonnées et l'adresse IP des
 connexions. La clé privée ne quitte jamais le poste du joueur. Le relais local
 ne collecte pas de pseudo Microsoft ni de position réelle.
 

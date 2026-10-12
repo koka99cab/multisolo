@@ -28,7 +28,7 @@ dans le menu Multisolo ; les règles d'une expérience restent communes.
 
 ## État réel du projet
 
-**v0.1 — Connected Solitude**, en développement (`0.1.0-dev.3`).
+**v0.1 — Connected Solitude**, en développement (`0.1.0-dev.4`).
 La seed de cette première expérience est **`0`**. Chaque joueur crée une
 sauvegarde indépendante, en survie normale verrouillée, avec le spawn vanilla.
 
@@ -37,7 +37,7 @@ sauvegarde indépendante, en survie normale verrouillée, avec le spawn vanilla.
 | Création d'une expérience seed 0 depuis le menu | Validation complète du JAR distribué |
 | Menu FR/EN, consentement et fonctionnement hors ligne | Hébergement HTTPS du relais (VPS OVH envisagé) |
 | Identité réseau cryptographique persistante | Essais du relais en conditions publiques |
-| Panneaux vanilla partagés, vocabulaire fermé, couleur et votes | Silhouettes et entraide, après la v0.1 |
+| Panneaux vanilla partagés, vocabulaire fermé et votes | Silhouettes et entraide, après la v0.1 |
 | CI, veille des versions et guide pour les bots | Portages vérifiés sur les autres versions Java 26.x |
 
 Le [contrat de la v0.1](docs/releases/0.1-connected-solitude.md) décrit les limites
@@ -65,7 +65,7 @@ le prérequis de lancement. Pour les essais de cette alpha, utiliser un profil
 avec Multisolo seul ; les autres mods ne sont pas encore validés.
 
 Dans l'accueil : **Multisolo → Créer Connected Solitude — seed 0**.
-Pour le social : choisir sa couleur **#RRGGBB**, renseigner le relais et activer
+Pour le social : renseigner le relais et activer
 le partage après lecture du consentement. Dans une partie Multisolo, **poser un
 panneau vanilla**, puis choisir « Panneau fantôme : oui » dans son menu habituel.
 Composer ses **quatre lignes prédéfinies** avec les flèches, puis « Partager ce
@@ -81,8 +81,9 @@ un auteur peut supprimer son partage, sans casser son panneau.
 
 Le partage porte uniquement des identifiants de phrases prédéfinies ; le relais
 refuse le texte libre. Aucun message social n'est envoyé au chat et aucun
-signalement Mojang ou Multisolo n'est ajouté. La couleur de l'auteur accompagne
-le panneau. Les lectures proches se rafraîchissent toutes les dix secondes quand
+signalement Mojang ou Multisolo n'est ajouté. Le texte garde la couleur vanilla
+du panneau ; aucun choix de couleur Multisolo pour le moment. Les lectures proches
+se rafraîchissent toutes les dix secondes quand
 le social est activé dans une expérience compatible.
 
 ## Commencer à développer

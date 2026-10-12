@@ -1,6 +1,25 @@
 # Validation — 12 octobre 2026
 
-## Panneaux vanilla partagés — 0.1.0-dev.3
+## Couleur vanilla — 0.1.0-dev.4
+
+Même cible Minecraft/Java, Windows et vrai client Vulkan :
+
+| Vérification | Résultat |
+| --- | --- |
+| `gradlew.bat build` | Réussi : 18 tests Java et assemblage |
+| `:fabric:runClientGameTest` | Réussi : menu natif, quatre lignes, votes, sauvegarde/rechargement et panneaux ordinaires |
+| Rendu vanilla | Texte noir par défaut, sans style RGB distant ; teinture et luminosité du panneau local conservées |
+| Ancienne publication colorée v2 | Lisible et votable, sa couleur historique ignorée au rendu |
+| Anciennes préférences | Relais et consentement conservés ; couleur retirée à l’enregistrement suivant |
+| Scripts | 8 tests Python, vérificateurs dépôt et distribution réussis |
+| Bootstrap dédié | Initialiseur chargé ; arrêt à l’EULA, conservée à false |
+
+Le sélecteur hexadécimal est retiré. Le format des publications v2 reste compatible
+avec les panneaux enregistrés. Les limites de distribution et de réseau public
+ci-dessous restent applicables ; `gameplay_ready` reste `false` et aucune version
+n’est ajoutée à `validated_game_versions`.
+
+## Historique — panneaux vanilla partagés 0.1.0-dev.3
 
 Même cible Minecraft/Java, Windows et vrai client Vulkan :
 

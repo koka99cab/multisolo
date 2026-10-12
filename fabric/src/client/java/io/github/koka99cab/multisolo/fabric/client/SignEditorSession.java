@@ -112,9 +112,8 @@ public final class SignEditorSession {
         done.setMessage(Component.translatable(readOnly() || !active ? "gui.done" : "multisolo.sign.publish"));
         done.active = !active || readOnly() || (social().enabled() && !social().busy() && Arrays.stream(lines).anyMatch(line -> line != MessagePhrase.Line.EMPTY));
     }
-    public void preview(GuiGraphicsExtractor graphics) {
-        int color = viewed == null ? social().signColor().rgb() : viewed.sign().color().rgb();
-        for (int i = 0; i < 4; i++) graphics.centeredText(client().font, PhraseText.line(lines[i]), 0, i * 10 - 20, 0xFF000000 | color);
+    public void preview(GuiGraphicsExtractor graphics, int vanillaTextColor) {
+        for (int i = 0; i < 4; i++) graphics.centeredText(client().font, PhraseText.line(lines[i]), 0, i * 10 - 20, 0xFF000000 | vanillaTextColor);
     }
     private void renderNotice(GuiGraphicsExtractor graphics) {
         if (!active) return;
@@ -131,7 +130,7 @@ public final class SignEditorSession {
     }
     private void publish() {
         if (social().busy()) return;
-        var sign = new PhantomSign(new MessagePhrase(List.of(lines)), social().signColor(), PhantomSign.Face.valueOf(editor.multisolo$slot().name()));
+        var sign = new PhantomSign(new MessagePhrase(List.of(lines)), PhantomSign.Face.valueOf(editor.multisolo$slot().name()));
         social().publishSign(client(), editor.multisolo$sign(), sign, ok -> {
             if (!ok) { notice = social().errorKey(); return; }
             LocatedMessage message = social().lastPublished();

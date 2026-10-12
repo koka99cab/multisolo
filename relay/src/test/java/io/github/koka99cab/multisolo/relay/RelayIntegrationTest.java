@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class RelayIntegrationTest {
     @TempDir Path data;
-    private PhantomSign sign() { return new PhantomSign(MessagePhrase.example(), SignColor.parse("#12ABEF"), PhantomSign.Face.FRONT); }
+    private PhantomSign sign() { return new PhantomSign(MessagePhrase.example(), PhantomSign.Face.FRONT); }
 
     private final MessagePosition position = new MessagePosition(10, 64, -5);
     private CompatibilityKey scope(String version, String dimension) {
@@ -144,7 +144,7 @@ class RelayIntegrationTest {
             server.start();
             var identity = NetworkIdentity.generate();
             String valid = Protocol.JSON.toJson(new Protocol.Publish(scope("26.4-snapshot-3", "minecraft:overworld"), position, sign()));
-            for (String invalid : new String[]{valid.replace("BEWARE", "arbitrary free text"), valid.replace("\"BUT\",", ""), valid.replace("\"rgb\":1223663", "\"rgb\":-1"),
+            for (String invalid : new String[]{valid.replace("BEWARE", "arbitrary free text"), valid.replace("\"BUT\",", ""), valid.replace("\"rgb\":0", "\"rgb\":-1"),
                     "{\"scope\":" + Protocol.JSON.toJson(scope("26.4-snapshot-3", "minecraft:overworld")) + ",\"position\":" + Protocol.JSON.toJson(position) + ",\"text\":\"free text\"}"}) {
                 String target = Protocol.path(UUID.randomUUID());
                 byte[] body = invalid.getBytes(StandardCharsets.UTF_8);

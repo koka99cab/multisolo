@@ -31,9 +31,11 @@ et les quatre modules Fabric API embarqués dans le JAR réellement produit.
 Ce test ouvre un vrai client et crée une nouvelle expérience depuis le bouton
 du menu. Il contrôle seed 0, difficulté verrouillée malgré un setter forcé,
 partage depuis le menu du panneau vanilla posé, quatre lignes, refus de saisie
-libre, couleur de l’auteur, lecture et votes par une seconde identité. Il
+libre, couleur vanilla malgré une ancienne couleur d’auteur, teintures et
+luminosité vanilla, lecture et votes par une seconde identité. Il
 contrôle l’absence d’écriture depuis le menu de consultation et la désactivation.
-Il vérifie aussi la sauvegarde/reprise de l’expérience et des métadonnées du panneau. Les captures vont dans
+Il vérifie aussi la sauvegarde/reprise de l’expérience et des métadonnées du panneau,
+ainsi que la lecture des anciennes préférences sans réinitialiser le consentement ou le relais. Les captures vont dans
 `fabric/build/run/clientGameTest/screenshots/`. Un GPU/contexte graphique compatible
 est nécessaire. Le profil est isolé dans `build/` ; aucune sauvegarde personnelle
 n'est utilisée. Les bibliothèques de test ne sont pas livrées aux joueurs.

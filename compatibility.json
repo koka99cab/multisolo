@@ -31,6 +31,6 @@
     "phantom_signs": "experimental",
     "preset_writing": "implemented",
     "message_votes": "experimental",
-    "sign_hex_color": "experimental"
+    "sign_hex_color": "planned"
   }
 }

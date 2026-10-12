@@ -7,7 +7,7 @@ celui de Minecraft : la proposition initiale de spawn aléatoire a été abandon
 ## Trois formes de présence
 
 1. **Panneaux fantômes** : partager quatre lignes prédéfinies depuis un panneau
-   vanilla réellement posé, avec couleur RGB et votes manuels. Le vocabulaire fermé
+   vanilla réellement posé, avec la couleur vanilla du texte et des votes manuels. Le vocabulaire fermé
    constitue la modération du contenu ; aucun signalement ni texte libre partagé.
 2. **Échos** : apercevoir une silhouette d'un autre joueur. Aucun accès à son
    inventaire, aucune collision ni interaction avec le monde.

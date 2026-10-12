@@ -26,7 +26,7 @@ est une action explicite du menu. Aucun échange réseau n'est automatique au la
 
 ## Artefacts
 
-`fabric/build/libs/multisolo-0.1.0-dev.3.jar` est le mod de développement.
+`fabric/build/libs/multisolo-0.1.0-dev.4.jar` est le mod de développement.
 `multisolo-…-sources.jar` contient les sources. Les sorties de `core/build/`
 servent aux développeurs, pas aux joueurs.
 

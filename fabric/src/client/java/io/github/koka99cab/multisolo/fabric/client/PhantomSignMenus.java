@@ -8,7 +8,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractSignEditScreen;
 import net.minecraft.client.gui.screens.inventory.SignEditScreen;
 import net.minecraft.client.gui.screens.inventory.HangingSignEditScreen;
-import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.entity.HangingSignBlockEntity;
 import net.minecraft.world.level.block.entity.SignBlockEntity;
 import net.minecraft.world.level.block.entity.SignText;
@@ -41,9 +40,10 @@ public final class PhantomSignMenus {
     public static SignText display(SignBlockEntity sign, SignTextSlot slot) {
         LocatedMessage message = message(sign, slot);
         if (message == null) return sign.getText(slot);
+        var original = sign.getText(slot);
         var lines = message.sign().phrase().lines().stream().map(value ->
-                (net.minecraft.network.chat.Component) PhraseText.line(value).withStyle(style -> style.withColor(message.sign().color().rgb()))).toList();
-        return new SignText(lines, lines, DyeColor.WHITE, false);
+                (net.minecraft.network.chat.Component) PhraseText.line(value)).toList();
+        return new SignText(lines, lines, original.getColor(), original.hasGlowingText());
     }
     /** Uses a real block hit and opens the vanilla sign menu without sending an edit packet. */
     public static boolean tryOpen(Minecraft client) {

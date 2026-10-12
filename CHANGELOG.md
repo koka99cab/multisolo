@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.0-dev.4 — Couleur vanilla
+
+- Retrait du choix hexadécimal et de son écran de préférences.
+- Texte des panneaux rendu avec leur couleur vanilla ; teintures et encre lumineuse locales conservées.
+- Anciennes couleurs Multisolo ignorées au rendu, sans rupture du protocole v2 ni perte des publications.
+- Anciennes préférences lues en conservant relais et consentement.
+
 ## 0.1.0-dev.3 — Panneaux vanilla partagés
 
 - Partage depuis le menu du vrai panneau posé, uniquement dans Multisolo.
