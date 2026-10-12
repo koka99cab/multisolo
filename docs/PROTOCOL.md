@@ -1,4 +1,4 @@
-# Protocole des messages v1
+# Protocole des panneaux v2
 
 `network` contient le contrat et le client Java, sans Minecraft. `relay` utilise
 le même contrat. Gson sérialise les records Java en JSON camelCase. Les
@@ -25,28 +25,42 @@ position. Ne pas utiliser ces messages pour classer ou certifier une progression
 | Route | Effet |
 | --- | --- |
 | `GET /health` | État et numéro de protocole, sans authentification |
-| `PUT /v1/messages/{uuid}` | Publier ; même UUID et contenu = même message, sans doublon |
-| `GET /v1/messages?scope=…&x=…&y=…&z=…` | Lire jusqu'à 50 messages à 128 blocs |
-| `DELETE /v1/messages/{uuid}` | Supprimer un message dont on possède l'identité auteur |
+| `PUT /v2/messages/{uuid}` | Publier ; même UUID et contenu = même message, sans doublon |
+| `GET /v2/messages?scope=…&x=…&y=…&z=…` | Lire jusqu'à 50 messages à 128 blocs |
+| `PUT /v2/messages/{uuid}/vote` | Voter +1, -1 ou annuler (0) |
+| `DELETE /v2/messages/{uuid}` | Supprimer un message dont on possède l'identité auteur |
 
-Corps PUT : `{ "scope": CompatibilityKey, "position": {"x":0,"y":64,"z":0},
-"text":"…" }`. Le scope contient `experience` (`id`, `revision`, `seed`,
-`difficulty`, `worldgenMods`), `minecraftVersion`, `protocolVersion`, `dimension`.
-Dans ce protocole Java, `seed` est un entier JSON long lu par Java des deux côtés ;
-dans le catalogue interopérable du dépôt, elle reste une chaîne. Pour la v0.1,
-la seule valeur acceptée est zéro.
+Corps PUT (exemple) :
 
-Le paramètre `scope` est ce JSON en UTF-8, encodé Base64 URL sans padding.
-Réponse PUT : `LocatedMessage` (`id`, `authorId`, `scope`, `position`, `text`,
-`createdAt`). Réponse GET : `{"messages":[…]}`. `createdAt` est l'heure du relais
-en millisecondes Unix. Les objets manquants ou invalides sont refusés.
+```json
+{
+  "scope": {"experience": {"id":"multisolo:origin","revision":2,"seed":0,"difficulty":"NORMAL","worldgenMods":{}},"minecraftVersion":"26.4-snapshot-3","protocolVersion":2,"dimension":"minecraft:overworld"},
+  "position": {"x":0,"y":64,"z":0},
+  "sign": {"phrase":{"lines":["BEWARE","LAVA","BUT","TREASURE"]},"color":{"rgb":1223663},"face":"FRONT"}
+}
+```
+
+`position` désigne le bloc du panneau posé. `face` vaut FRONT ou BACK. Les quatre
+lignes doivent être des valeurs de `MessagePhrase.Line` ; aucun texte utilisateur
+n'est transmis. EMPTY permet une ligne vide, mais pas quatre lignes vides. La
+couleur RGB opaque va de 0 à 16777215. Les traductions sont locales au client.
+Dans ce protocole Java, la seed est un entier long ; le catalogue interopérable
+du dépôt la conserve comme chaîne. La seule seed acceptée ici est zéro.
+
+`scope` en paramètre GET est ce JSON en UTF-8 encodé Base64 URL sans padding.
+Réponse PUT : `LocatedMessage` (`id`, `authorId`, `scope`, `position`, `sign`,
+`createdAt`). `createdAt` est l'heure du relais en millisecondes Unix. Réponse GET :
+`{"messages":[{"message":LocatedMessage,"upvotes":0,"downvotes":0,"ownVote":0}]}`.
+Corps vote : `{"value":1}`, `{"value":-1}` ou `{"value":0}`. Une seule voix par
+identité, modifiable et annulable ; le vote sur ses propres messages est refusé.
+Les comptes et votes survivent au redémarrage. Maximum 1000 votants par message.
 
 Hors `/health`, les requêtes portent `X-Multisolo-Key` (clé X.509 en Base64),
 `X-Multisolo-Time` (millisecondes Unix) et `X-Multisolo-Signature` (Base64 Ed25519).
 Les octets signés sont l'UTF-8 de ces cinq lignes, sans saut final :
 
 ```text
-multisolo-v1
+multisolo-v2
 METHOD
 /raw/path?raw=query
 timestamp
@@ -59,19 +73,32 @@ idempotent tant que le message existe. Les redirections HTTP ne sont pas suivies
 
 ## Isolation et limites
 
-Le relais v1 accepte l'origine révision 2, seed 0, normale, sans worldgen mod,
+Le relais v2 accepte l'origine révision 2, seed 0, normale, sans worldgen mod,
 les trois dimensions vanilla et des identifiants Java 26.x. Accepter ces
 identifiants ne signifie pas que le mod est compatible avec ces versions.
 Les échanges exigent l'égalité de tous les champs du scope.
 
-- 8 Kio par requête, 128 Kio par réponse client, 280 points de code par message.
+- 8 Kio par requête, 128 Kio par réponse client, exactement quatre lignes de catalogue.
 - 120 requêtes et 10 mutations par minute par identité.
 - 10 000 messages maximum sur le relais ; `507` lorsque le stockage est plein.
 - Aucun effacement automatique ni TTL ; suppression explicite de l'auteur ou
   de l'opérateur du relais. Un redémarrage recharge les fichiers persistés.
-- `400` invalide, `401` signature/heure, `403` autre auteur, `409` conflit UUID,
+- `400` invalide, `401` signature/heure, `403` autre auteur ou vote sur soi, `404` message absent pour un vote, `409` conflit UUID,
   `413` corps trop grand, `429` limite, `500` erreur disque/service.
 
-Une identité peut être recréée : ces limites ne suffisent pas contre un attaquant
-distribué. Le service doit rester en essais contrôlés jusqu'à ajout de modération
-et protections globales. Ne pas journaliser les clés privées, signatures ou textes.
+Une identité peut être recréée : une voix n'est pas un compte Minecraft vérifié.
+Le vocabulaire fermé constitue la modération du contenu choisie pour cette version.
+Il n'empêche pas le spam ou les indications trompeuses. Aucun signalement, aucune
+sanction automatique et aucun envoi à Mojang. Ne pas journaliser clés privées ou signatures.
+
+## Stockage et passage depuis v1
+
+Le défaut est désormais `data/messages-v2` (`/data/messages-v2` dans Docker).
+Chaque fichier contient `{schemaVersion:2,message:LocatedMessage,votes:{identity:1}}`.
+Les écritures sont atomiques avant acquittement. Une publication reste immuable ;
+un changement de contenu crée un nouvel UUID puis retire l'ancien partage de
+l'auteur. Les votes de l'ancienne publication ne sont pas transférés.
+
+Les anciennes routes v1 sont refusées. Un répertoire contenant l'ancien format
+est refusé au démarrage : conserver sa sauvegarde et choisir un nouveau répertoire
+v2. Aucun texte libre historique n'est importé, réécrit ou supprimé automatiquement.

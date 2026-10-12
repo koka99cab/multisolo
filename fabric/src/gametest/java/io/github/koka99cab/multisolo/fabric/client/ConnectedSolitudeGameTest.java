@@ -1,7 +1,16 @@
 package io.github.koka99cab.multisolo.fabric.client;
 
 import io.github.koka99cab.multisolo.core.experience.CompatibilityKey;
-import io.github.koka99cab.multisolo.core.message.MessagePosition;
+import io.github.koka99cab.multisolo.core.message.*;
+import io.github.koka99cab.multisolo.fabric.PhantomSignData;
+import io.github.koka99cab.multisolo.network.Protocol;
+import java.util.UUID;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.SignBlockEntity;
+import net.minecraft.world.level.block.entity.SignTextSlot;
+import net.minecraft.client.gui.screens.inventory.SignEditScreen;
+import net.minecraft.client.input.CharacterEvent;
 import io.github.koka99cab.multisolo.fabric.ExperienceCatalog;
 import io.github.koka99cab.multisolo.fabric.ExperienceWorlds;
 import io.github.koka99cab.multisolo.network.NetworkIdentity;
@@ -27,6 +36,16 @@ public final class ConnectedSolitudeGameTest implements FabricClientGameTest {
         context.waitFor(client -> server.isShutdown() && client.player == null, 1200);
         context.waitTicks(2);
         context.setScreen(TitleScreen::new);
+    }
+    private static void placeSign(ClientGameTestContext context, BlockPos pos) {
+        var playerId = context.computeOnClient(client -> client.player.getUUID());
+        context.runOnClient(client -> client.getSingleplayerServer().execute(() -> {
+            var level = client.getSingleplayerServer().overworld();
+            level.setBlock(pos.below(), Blocks.STONE.defaultBlockState(), 3);
+            level.setBlock(pos, Blocks.OAK_SIGN.defaultBlockState(), 3);
+            ((SignBlockEntity) level.getBlockEntity(pos)).setAllowedPlayerEditor(playerId);
+        }));
+        context.waitFor(client -> client.level.getBlockEntity(pos) instanceof SignBlockEntity, 200);
     }
     @Override public void runTest(ClientGameTestContext context) {
         try {
@@ -60,25 +79,72 @@ public final class ConnectedSolitudeGameTest implements FabricClientGameTest {
             context.waitFor(client -> checked.get());
             if (error.get() != null) throw new AssertionError(error.get());
 
+            BlockPos signPosition = context.computeOnClient(client -> client.player.blockPosition().offset(2, 0, 0));
             try (RelayServer relay = new RelayServer(new InetSocketAddress("127.0.0.1", 0), Files.createTempDirectory("multisolo-relay-test"))) {
                 relay.start();
                 String endpoint = "http://127.0.0.1:" + relay.port();
-                AtomicBoolean completed = new AtomicBoolean();
+                placeSign(context, signPosition);
                 context.runOnClient(client -> {
+                    MultisoloClient.SOCIAL.saveSignColor("#12abef");
                     MultisoloClient.SOCIAL.configure(true, endpoint);
-                    MultisoloClient.SOCIAL.publish(client, "Connected Solitude — seed 0", ok -> {
-                        check(ok, "In-game message publication failed"); completed.set(true);
-                    });
+                    client.gui.setScreen(new SignEditScreen((SignBlockEntity) client.level.getBlockEntity(signPosition), SignTextSlot.FRONT, false));
                 });
-                context.waitFor(client -> completed.get(), 600);
+                context.waitFor(client -> !MultisoloClient.SOCIAL.busy(), 600);
+                context.clickScreenButton("multisolo.sign.off");
+                context.runOnClient(client -> {
+                    var screen = (SignEditScreen) client.gui.screen();
+                    var editor = (PhantomSignEditor) screen;
+                    check(editor.multisolo$session().active(), "Phantom mode did not activate in the vanilla sign screen");
+                    String[] before = editor.multisolo$lines();
+                    screen.charTyped(new CharacterEvent('X'));
+                    check(java.util.Arrays.equals(before, editor.multisolo$lines()), "Free text reached a phantom sign");
+                    for (var line : MessagePhrase.Line.values()) check(client.font.width(PhraseText.line(line)) <= 60, "Catalog line is too wide for a hanging sign: " + line);
+                });
+                context.takeScreenshot("connected-solitude-vanilla-sign-editor");
+                context.waitTicks(5);
+                context.waitFor(client -> !MultisoloClient.SOCIAL.busy(), 600);
+                context.clickScreenButton("multisolo.sign.publish");
+                context.waitTicks(5);
+                context.waitFor(client -> (client.gui.screen() == null && !MultisoloClient.SOCIAL.messages().isEmpty()) || !MultisoloClient.SOCIAL.errorKey().isEmpty(), 600);
+                check(context.computeOnClient(client -> MultisoloClient.SOCIAL.errorKey().isEmpty()), "Publication error: " + context.computeOnClient(client -> MultisoloClient.SOCIAL.errorKey()));
                 var located = context.computeOnClient(client -> MultisoloClient.SOCIAL.messages().getFirst());
+                check(located.position().equals(new MessagePosition(signPosition.getX(), signPosition.getY(), signPosition.getZ())), "Publication used player position instead of the placed sign");
+                check(located.sign().phrase().lines().size() == 4 && located.sign().color().rgb() == 0x12ABEF, "Four lines or chosen hex color were lost");
+                context.waitFor(client -> ((PhantomSignData) client.level.getBlockEntity(signPosition)).multisolo$message(SignTextSlot.FRONT) != null, 600);
                 try (RelayClient other = new RelayClient(URI.create(endpoint), NetworkIdentity.generate())) {
-                    check(other.nearby(new CompatibilityKey(ExperienceCatalog.origin(), ExperienceWorlds.gameVersion(), 1,
-                            "minecraft:overworld"), new MessagePosition(located.position().x(), located.position().y(), located.position().z())).size() == 1,
-                            "A second identity cannot read the in-game message");
+                    var scope = new CompatibilityKey(ExperienceCatalog.origin(), ExperienceWorlds.gameVersion(), Protocol.VERSION, "minecraft:overworld");
+                    check(other.nearby(scope, located.position()).size() == 1, "A second identity cannot read the placed sign");
+                    other.vote(located.id(), 1);
+                    BlockPos receiverPosition = signPosition.offset(1, 0, 0);
+                    placeSign(context, receiverPosition);
+                    var remote = other.publish(UUID.randomUUID(), scope,
+                            new MessagePosition(receiverPosition.getX(), receiverPosition.getY(), receiverPosition.getZ()),
+                            new PhantomSign(MessagePhrase.example(), SignColor.parse("#FE1288"), PhantomSign.Face.FRONT));
+                    AtomicBoolean read = new AtomicBoolean();
+                    context.runOnClient(client -> MultisoloClient.SOCIAL.refresh(client, read::set));
+                    context.waitFor(client -> read.get(), 600);
+                    context.runOnClient(client -> {
+                        var block = (SignBlockEntity) client.level.getBlockEntity(receiverPosition);
+                        var original = block.getText(SignTextSlot.FRONT);
+                        var overlay = PhantomSignMenus.display(block, SignTextSlot.FRONT);
+                        check(overlay.getMessages(false).getFirst().getString().equals(PhraseText.line(MessagePhrase.Line.BEWARE).getString()), "Preset text was not rendered on the real vanilla sign");
+                        check(overlay.getMessages(false).getFirst().getStyle().getColor().getValue() == 0xFE1288, "Author color did not reach sign rendering");
+                        check(block.getText(SignTextSlot.FRONT).equals(original), "Reading remote text mutated the receiving block");
+                        PhantomSignMenus.openViewer(client, block, SignTextSlot.FRONT, remote);
+                    });
+                    context.takeScreenshot("connected-solitude-sign-votes");
+                    context.clickScreenButton(context.computeOnClient(client -> net.minecraft.network.chat.Component.translatable("multisolo.vote.up", 0).getString()));
+                    context.waitFor(client -> MultisoloClient.SOCIAL.view(remote).ownVote() == 1, 600);
+                    context.runOnClient(client -> {
+                        ((PhantomSignEditor) client.gui.screen()).multisolo$lines(new String[]{"HACK", "", "", ""});
+                        client.gui.screen().onClose();
+                    });
+                    context.waitTicks(5);
+                    AtomicBoolean unchanged = new AtomicBoolean();
+                    context.runOnClient(client -> client.getSingleplayerServer().execute(() -> unchanged.set(
+                            !((SignBlockEntity) client.getSingleplayerServer().overworld().getBlockEntity(receiverPosition)).getText(SignTextSlot.FRONT).hasMessage(false))));
+                    context.waitFor(client -> unchanged.get(), 100);
                 }
-                context.setScreen(() -> new MessagesScreen(new MultisoloScreen(new TitleScreen())));
-                context.takeScreenshot("connected-solitude-messages");
                 context.runOnClient(client -> MultisoloClient.SOCIAL.configure(false, endpoint));
                 check(context.computeOnClient(client -> MultisoloClient.SOCIAL.messages().isEmpty()), "Disabled social retained visible remote messages");
             }
@@ -88,8 +154,25 @@ public final class ConnectedSolitudeGameTest implements FabricClientGameTest {
             context.runOnClient(client -> client.createWorldOpenFlows().openWorld(folder, () -> {}));
             context.waitFor(client -> client.player != null && client.gui.screen() == null, 2400);
             check(context.computeOnClient(client -> ExperienceWorlds.connectedSolitude(client.getSingleplayerServer())), "Saved experience did not reload");
+            context.waitFor(client -> client.level.getBlockEntity(signPosition) instanceof SignBlockEntity, 600);
+            context.runOnClient(client -> {
+                var block = (SignBlockEntity) client.level.getBlockEntity(signPosition);
+                var saved = ((PhantomSignData) block).multisolo$message(SignTextSlot.FRONT);
+                check(saved != null && saved.sign().phrase().equals(MessagePhrase.example()) && saved.sign().color().rgb() == 0x12ABEF, "Phantom metadata was not saved on the actual vanilla sign");
+                check(block.getText(SignTextSlot.FRONT).hasMessage(false), "Vanilla sign text was lost after reloading");
+            });
             disconnect(context);
             try (var ordinary = context.worldBuilder().create()) {
+                BlockPos pos = context.computeOnClient(client -> client.player.blockPosition().offset(2, 0, 0));
+                placeSign(context, pos);
+                context.runOnClient(client -> {
+                    var screen = new SignEditScreen((SignBlockEntity) client.level.getBlockEntity(pos), SignTextSlot.FRONT, false);
+                    client.gui.setScreen(screen);
+                    check(((PhantomSignEditor) screen).multisolo$session() == null, "Ordinary sign gained Multisolo controls");
+                    screen.charTyped(new CharacterEvent('Z'));
+                    check(((PhantomSignEditor) screen).multisolo$lines()[0].equals("Z"), "Ordinary vanilla sign input was intercepted");
+                    screen.onClose();
+                });
                 ordinary.getServer().runOnServer(server -> {
                     check(!ExperienceWorlds.connectedSolitude(server), "Ordinary save was converted");
                     server.setDifficulty(Difficulty.HARD, true);

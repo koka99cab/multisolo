@@ -15,10 +15,10 @@ class NetworkIdentityTest {
         NetworkIdentity first = NetworkIdentity.loadOrCreate(file);
         NetworkIdentity reloaded = NetworkIdentity.loadOrCreate(file);
         assertEquals(first.id(), reloaded.id());
-        byte[] request = NetworkIdentity.signingBytes("PUT", "/v1/messages/example", "1", new byte[]{1});
+        byte[] request = NetworkIdentity.signingBytes("PUT", "/v2/messages/example", "1", new byte[]{1});
         assertTrue(NetworkIdentity.verify(first.publicKey(), request, reloaded.sign(request)));
         assertFalse(NetworkIdentity.verify(NetworkIdentity.generate().publicKey(), request, first.sign(request)));
-        assertFalse(NetworkIdentity.verify(first.publicKey(), NetworkIdentity.signingBytes("DELETE", "/v1/messages/example", "1", new byte[]{1}), first.sign(request)));
+        assertFalse(NetworkIdentity.verify(first.publicKey(), NetworkIdentity.signingBytes("DELETE", "/v2/messages/example", "1", new byte[]{1}), first.sign(request)));
     }
 
     @Test void malformedIdentityIsPreservedRatherThanRegenerated() throws Exception {

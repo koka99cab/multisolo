@@ -78,7 +78,7 @@ public final class NetworkIdentity {
     public static byte[] signingBytes(String method, String target, String timestamp, byte[] body) {
         try {
             String digest = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(body));
-            return ("multisolo-v1\n" + method + "\n" + target + "\n" + timestamp + "\n" + digest)
+            return ("multisolo-v2\n" + method + "\n" + target + "\n" + timestamp + "\n" + digest)
                     .getBytes(StandardCharsets.UTF_8);
         } catch (GeneralSecurityException exception) { throw new IllegalStateException(exception); }
     }

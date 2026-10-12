@@ -47,9 +47,9 @@ public final class RelayServer implements AutoCloseable {
                 String path = exchange.getRequestURI().getPath();
                 if (target.length() > 4096) { respond(exchange, 414, "{}"); return; }
                 if ("GET".equals(method) && "/health".equals(target)) {
-                    respond(exchange, 200, "{\"status\":\"ok\",\"protocol\":1}"); return;
+                    respond(exchange, 200, "{\"status\":\"ok\",\"protocol\":2}"); return;
                 }
-                if (!path.equals("/v1/messages") && !path.startsWith("/v1/messages/")) {
+                if (!path.equals("/v2/messages") && !path.startsWith("/v2/messages/")) {
                     respond(exchange, 404, "{}"); return;
                 }
                 byte[] body = exchange.getRequestBody().readNBytes(Protocol.MAX_BODY_BYTES + 1);
@@ -57,7 +57,7 @@ public final class RelayServer implements AutoCloseable {
                 String author = authenticate(exchange, method, target, body);
                 if (author == null) { respond(exchange, 401, "{}"); return; }
                 if (!allow("read:" + author, 120)) { respond(exchange, 429, "{}"); return; }
-                if ("GET".equals(method) && path.equals("/v1/messages")) {
+                if ("GET".equals(method) && path.equals("/v2/messages")) {
                     if (body.length != 0) throw new IllegalArgumentException("Unexpected body");
                     Map<String, String> query = query(exchange.getRequestURI().getRawQuery());
                     if (!query.keySet().equals(Set.of("scope", "x", "y", "z"))) throw new IllegalArgumentException("Query fields");
@@ -66,21 +66,29 @@ public final class RelayServer implements AutoCloseable {
                     validateScope(scope);
                     MessagePosition center = new MessagePosition(Integer.parseInt(query.get("x")),
                             Integer.parseInt(query.get("y")), Integer.parseInt(query.get("z")));
-                    respond(exchange, 200, Protocol.JSON.toJson(new Protocol.Messages(store.nearby(scope, center))));
-                } else if (path.startsWith("/v1/messages/") && exchange.getRequestURI().getRawQuery() == null) {
-                    UUID id = UUID.fromString(path.substring("/v1/messages/".length()));
-                    if (!path.equals(Protocol.path(id))) throw new IllegalArgumentException("Non-canonical id");
+                    respond(exchange, 200, Protocol.JSON.toJson(new Protocol.Messages(store.nearby(scope, center, author))));
+                } else if (path.startsWith("/v2/messages/") && exchange.getRequestURI().getRawQuery() == null) {
+                    boolean voting = path.endsWith("/vote");
+                    String messagePath = voting ? path.substring(0, path.length() - 5) : path;
+                    UUID id = UUID.fromString(messagePath.substring("/v2/messages/".length()));
+                    if (!messagePath.equals(Protocol.path(id))) throw new IllegalArgumentException("Non-canonical id");
                     if (!allow("write:" + author, 10)) { respond(exchange, 429, "{}"); return; }
-                    if ("PUT".equals(method)) {
+                    if (voting && "PUT".equals(method)) {
+                        Protocol.Vote vote = Protocol.JSON.fromJson(new String(body, StandardCharsets.UTF_8), Protocol.Vote.class);
+                        store.vote(id, author, vote.value());
+                        respond(exchange, 200, "{}");
+                    } else if (!voting && "PUT".equals(method)) {
                         Protocol.Publish request = Protocol.JSON.fromJson(new String(body, StandardCharsets.UTF_8), Protocol.Publish.class);
                         validateScope(request.scope());
                         respond(exchange, 200, Protocol.JSON.toJson(store.publish(id, author, request, System.currentTimeMillis())));
-                    } else if ("DELETE".equals(method) && body.length == 0) {
+                    } else if (!voting && "DELETE".equals(method) && body.length == 0) {
                         respond(exchange, store.delete(id, author) ? 200 : 403, "{}");
                     } else respond(exchange, 405, "{}");
                 } else respond(exchange, 405, "{}");
             } catch (MessageStore.ConflictException exception) { respond(exchange, 409, "{}"); }
             catch (MessageStore.CapacityException exception) { respond(exchange, 507, "{}"); }
+            catch (MessageStore.ForbiddenException exception) { respond(exchange, 403, "{}"); }
+            catch (MessageStore.MissingException exception) { respond(exchange, 404, "{}"); }
             catch (RuntimeException exception) { respond(exchange, 400, "{}"); }
             catch (IOException exception) {
                 System.err.println("Relay storage/connection error: " + exception.getClass().getSimpleName());
@@ -125,7 +133,7 @@ public final class RelayServer implements AutoCloseable {
 
     private static void validateScope(CompatibilityKey scope) {
         var experience = scope.experience();
-        if (scope.protocolVersion() != 1 || !scope.minecraftVersion().matches("26\\.[1-9][0-9]*(?:[.-][a-zA-Z0-9.-]+)?")
+        if (scope.protocolVersion() != Protocol.VERSION || !scope.minecraftVersion().matches("26\\.[1-9][0-9]*(?:[.-][a-zA-Z0-9.-]+)?")
                 || !Set.of("minecraft:overworld", "minecraft:the_nether", "minecraft:the_end").contains(scope.dimension())
                 || !experience.id().equals("multisolo:origin") || experience.revision() != 2
                 || experience.seed() != 0 || experience.difficulty() != Difficulty.NORMAL || !experience.worldgenMods().isEmpty()) {

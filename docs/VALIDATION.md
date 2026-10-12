@@ -1,6 +1,29 @@
 # Validation — 12 octobre 2026
 
-## Connected Solitude — 0.1.0-dev.2
+## Panneaux vanilla partagés — 0.1.0-dev.3
+
+Même cible Minecraft/Java, Windows et vrai client Vulkan :
+
+| Vérification | Résultat |
+| --- | --- |
+| `gradlew.bat build` | Réussi : 19 tests Java, JAR joueur et relais |
+| Vocabulaire fermé | Quatre lignes requises ; texte libre, ligne inconnue, couleur invalide et panneau vide refusés |
+| Votes HTTP | Pour/contre/annulation, une voix par identité, vote sur soi refusé et reprise après redémarrage |
+| Menu du panneau vanilla | Mode fantôme activé dans le menu natif, saisie libre bloquée, quatre lignes et couleur partagées depuis le XYZ du panneau |
+| Consultation et votes dans le jeu | Autre identité, couleur d’auteur rendue, vote depuis le menu vanilla en lecture seule |
+| Sauvegarde locale du destinataire | Texte du bloc intact après rendu et fermeture du menu de consultation, même avec des lignes de test injectées |
+| Sauvegarde/rechargement auteur | Métadonnées fantômes, quatre lignes et RGB retrouvés sur le vrai panneau vanilla |
+| Monde ordinaire | Aucune option fantôme ; saisie vanilla et difficulté libre conservées |
+| Bootstrap dédié | Initialiseur chargé ; EULA laissée à false, aucun monde dédié lancé |
+| Distribution | Un seul JAR, core/network, quatre modules Fabric API avec licences, aucun test embarqué |
+
+Le test automatisé du menu utilise l’anglais ; les catalogues FR/EN sont vérifiés
+ensemble. Le rendu utilise un panneau local vierge existant au même XYZ/face :
+aucun bloc distant n’est créé. Aucun chat ni signalement. Relais HTTPS public,
+Docker/VPS, installation sur un second poste et essais prolongés restent à valider.
+Les compatibilités déclarées restent inchangées : aucune release complète annoncée.
+
+## Historique — Connected Solitude 0.1.0-dev.2
 
 Même cible Minecraft/Java que le socle. Vérifications locales sous Windows :
 

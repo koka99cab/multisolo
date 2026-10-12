@@ -26,6 +26,8 @@ final class MultisoloScreen extends Screen {
         endpoint = addRenderableWidget(new EditBox(font, x, 65, 300, 20, Component.translatable("multisolo.relay")));
         endpoint.setMaxLength(512);
         endpoint.setValue(social().endpoint());
+        addRenderableWidget(Button.builder(Component.translatable("multisolo.sign.short"),
+                button -> minecraft.gui.setScreen(new SignSettingsScreen(this))).bounds(x + 236, 42, 64, 20).build());
         addRenderableWidget(Button.builder(Component.translatable(social().enabled() ? "multisolo.disable" : "multisolo.enable"), button -> {
             try {
                 social().configure(!social().enabled(), social().enabled() ? social().endpoint() : endpoint.getValue());

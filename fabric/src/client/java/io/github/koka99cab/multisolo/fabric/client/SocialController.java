@@ -3,10 +3,14 @@ package io.github.koka99cab.multisolo.fabric.client;
 import io.github.koka99cab.multisolo.core.experience.CompatibilityKey;
 import io.github.koka99cab.multisolo.core.message.LocatedMessage;
 import io.github.koka99cab.multisolo.core.message.MessagePosition;
+import io.github.koka99cab.multisolo.core.message.PhantomSign;
+import io.github.koka99cab.multisolo.core.message.SignColor;
 import io.github.koka99cab.multisolo.fabric.ExperienceCatalog;
 import io.github.koka99cab.multisolo.fabric.ExperienceWorlds;
+import io.github.koka99cab.multisolo.fabric.PhantomSignData;
 import io.github.koka99cab.multisolo.network.NetworkIdentity;
 import io.github.koka99cab.multisolo.network.RelayClient;
+import io.github.koka99cab.multisolo.network.Protocol;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.List;
@@ -17,6 +21,9 @@ import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.entity.SignBlockEntity;
+import net.minecraft.world.level.block.entity.SignTextSlot;
 
 public final class SocialController {
     private final Path directory = FabricLoader.getInstance().getConfigDir().resolve("multisolo");
@@ -30,11 +37,14 @@ public final class SocialController {
     private boolean busy;
     private long generation;
     private Object lastWorld;
-    private List<LocatedMessage> messages = List.of();
+    private List<Protocol.MessageView> views = List.of();
+    private long nextRefresh;
     private String errorKey = "";
     private record Context(CompatibilityKey scope, MessagePosition position) {}
-    private record Publication(UUID id, Context context, String text) {}
+    private record Publication(UUID id, Context context, PhantomSign sign) {}
     private Publication retryPublication;
+    private LocatedMessage lastPublished;
+    public LocatedMessage lastPublished() { return lastPublished; }
 
     SocialController() {
         try { settings = SocialSettings.load(directory.resolve("social.json")); }
@@ -44,11 +54,21 @@ public final class SocialController {
     public boolean enabled() { return settings.messagesEnabled(); }
     public boolean busy() { return busy; }
     public String errorKey() { return errorKey; }
-    public List<LocatedMessage> messages() { return messages; }
+    public List<LocatedMessage> messages() { return views.stream().map(Protocol.MessageView::message).toList(); }
+    public Protocol.MessageView view(LocatedMessage message) {
+        return views.stream().filter(view -> view.message().id().equals(message.id())).findFirst()
+                .orElse(new Protocol.MessageView(message, 0, 0, 0));
+    }
+    public SignColor signColor() { return SignColor.parse(settings.signColor()); }
+    public void saveSignColor(String hex) throws Exception {
+        SocialSettings next = new SocialSettings(2, enabled(), endpoint(), SignColor.parse(hex).hex());
+        next.save(directory.resolve("social.json"));
+        settings = next;
+    }
     public String identityId() { return identity == null ? "" : identity.id(); }
 
     public void configure(boolean enabled, String endpoint) throws Exception {
-        SocialSettings next = new SocialSettings(1, enabled, endpoint.strip());
+        SocialSettings next = new SocialSettings(2, enabled, endpoint.strip(), settings.signColor());
         if (!enabled) {
             // Revocation takes effect even if a full/read-only disk prevents persistence.
             cancel();
@@ -66,6 +86,12 @@ public final class SocialController {
 
     public void checkWorld(Minecraft client) {
         if (lastWorld != client.level) { cancel(); lastWorld = client.level; }
+        long now = System.nanoTime();
+        if (!busy && enabled() && client.level != null && !client.gui.isPausing()
+                && ExperienceWorlds.canShare(client.getSingleplayerServer()) && now >= nextRefresh) {
+            nextRefresh = now + java.util.concurrent.TimeUnit.SECONDS.toNanos(10);
+            refresh(client, ok -> {});
+        }
     }
 
     private void cancel() {
@@ -76,8 +102,10 @@ public final class SocialController {
         transport = null;
         pending = null;
         busy = false;
-        messages = List.of();
+        views = List.of();
+        nextRefresh = 0;
         retryPublication = null;
+        lastPublished = null;
     }
 
     private Context context(Minecraft client) {
@@ -86,11 +114,11 @@ public final class SocialController {
             throw new IllegalStateException("multisolo.error.world");
         }
         var position = client.player.blockPosition();
-        return new Context(new CompatibilityKey(ExperienceCatalog.origin(), ExperienceWorlds.gameVersion(), 1,
+        return new Context(new CompatibilityKey(ExperienceCatalog.origin(), ExperienceWorlds.gameVersion(), Protocol.VERSION,
                 client.level.dimension().identifier().toString()), new MessagePosition(position.getX(), position.getY(), position.getZ()));
     }
 
-    @FunctionalInterface private interface Operation { List<LocatedMessage> run(RelayClient relay, Context context) throws Exception; }
+    @FunctionalInterface private interface Operation { List<Protocol.MessageView> run(RelayClient relay, Context context) throws Exception; }
 
     private void submit(Minecraft client, Operation operation, Consumer<Boolean> finished) {
         if (busy) return;
@@ -100,6 +128,7 @@ public final class SocialController {
         long requestGeneration = generation;
         String endpoint = settings.relay();
         busy = true;
+        nextRefresh = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(10);
         errorKey = "";
         pending = worker.submit(() -> {
             try {
@@ -107,10 +136,11 @@ public final class SocialController {
                 try (RelayClient relay = new RelayClient(URI.create(endpoint), identity)) {
                     transport = relay;
                     if (Thread.currentThread().isInterrupted()) return;
-                    List<LocatedMessage> result = operation.run(relay, context);
+                    List<Protocol.MessageView> result = operation.run(relay, context);
                     client.execute(() -> {
                         if (generation != requestGeneration) return;
-                        messages = result; busy = false; finished.accept(true);
+                        views = result; busy = false;
+                        finished.accept(true);
                     });
                 }
             } catch (Exception exception) {
@@ -123,30 +153,68 @@ public final class SocialController {
     }
 
     public void refresh(Minecraft client, Consumer<Boolean> finished) {
-        submit(client, (relay, context) -> relay.nearby(context.scope(), context.position()), finished);
+        submit(client, (relay, context) -> relay.nearbyViews(context.scope(), context.position()), finished);
     }
-    public void publish(Minecraft client, String text, Consumer<Boolean> finished) {
+    public void publishSign(Minecraft client, SignBlockEntity block,
+                            PhantomSign sign, Consumer<Boolean> finished) {
         if (busy) return;
-        String validated = LocatedMessage.validateText(text);
+        java.util.Objects.requireNonNull(sign);
         Context current;
         try { current = context(client); }
         catch (IllegalStateException exception) { errorKey = exception.getMessage(); finished.accept(false); return; }
-        if (retryPublication == null || !retryPublication.context().equals(current) || !retryPublication.text().equals(validated)) {
-            retryPublication = new Publication(UUID.randomUUID(), current, validated);
+        var pos = block.getBlockPos();
+        if (block.isRemoved() || client.level.getBlockEntity(pos) != block
+                || pos.distToCenterSqr(client.player.position()) > 64) {
+            errorKey = "multisolo.error.sign"; finished.accept(false); return;
         }
+        current = new Context(current.scope(), new MessagePosition(pos.getX(), pos.getY(), pos.getZ()));
+        if (retryPublication == null || !retryPublication.context().equals(current) || !retryPublication.sign().equals(sign)) {
+            retryPublication = new Publication(UUID.randomUUID(), current, sign);
+        }
+        Context publication = current;
         UUID id = retryPublication.id();
+        var saved = new java.util.concurrent.atomic.AtomicReference<LocatedMessage>();
+        var previous = ((PhantomSignData) block).multisolo$message(
+                SignTextSlot.valueOf(sign.face().name()));
         submit(client, (relay, context) -> {
-            relay.publish(id, context.scope(), context.position(), validated);
-            return relay.nearby(context.scope(), context.position());
+            saved.set(relay.publish(id, publication.scope(), publication.position(), sign));
+            if (previous != null && previous.authorId().equals(identity.id()) && !previous.id().equals(id)) relay.delete(previous.id());
+            return relay.nearbyViews(context.scope(), context.position());
         }, ok -> {
-            if (ok) retryPublication = null;
+            if (ok) { retryPublication = null; lastPublished = saved.get(); }
             finished.accept(ok);
         });
     }
     public void delete(Minecraft client, UUID id, Consumer<Boolean> finished) {
+        LocatedMessage known = messages().stream().filter(message -> message.id().equals(id)).findFirst().orElse(null);
         submit(client, (relay, context) -> {
             relay.delete(id);
-            return relay.nearby(context.scope(), context.position());
+            return relay.nearbyViews(context.scope(), context.position());
+        }, ok -> { if (ok && known != null) forgetLocal(client, known); finished.accept(ok); });
+    }
+    static void forgetLocal(Minecraft client, LocatedMessage message) {
+        var server = client.getSingleplayerServer();
+        if (server == null || client.level == null || !client.level.dimension().identifier().toString().equals(message.scope().dimension())) return;
+        var dimension = client.level.dimension();
+        server.execute(() -> {
+            if (!ExperienceWorlds.canShare(server)) return;
+            var level = server.getLevel(dimension);
+            var p = message.position();
+            if (level != null && level.getBlockEntity(new BlockPos(p.x(), p.y(), p.z())) instanceof SignBlockEntity block) {
+                var data = (PhantomSignData) block;
+                var slot = SignTextSlot.valueOf(message.sign().face().name());
+                var own = data.multisolo$message(slot);
+                if (own != null && own.id().equals(message.id())) {
+                    data.multisolo$message(slot, null);
+                    level.sendBlockUpdated(block.getBlockPos(), block.getBlockState(), block.getBlockState(), 3);
+                }
+            }
+        });
+    }
+    public void vote(Minecraft client, UUID id, int value, Consumer<Boolean> finished) {
+        submit(client, (relay, context) -> {
+            relay.vote(id, value);
+            return relay.nearbyViews(context.scope(), context.position());
         }, finished);
     }
 }

@@ -19,9 +19,9 @@ machine ; `127.0.0.1` désigne uniquement la machine locale.
 | --- | --- |
 | `MULTISOLO_BIND` | `127.0.0.1` |
 | `MULTISOLO_PORT` | `8787` |
-| `MULTISOLO_DATA` | `data/messages`, relatif au répertoire de lancement |
+| `MULTISOLO_DATA` | `data/messages-v2`, relatif au répertoire de lancement |
 
-`GET /health` doit renvoyer `{"status":"ok","protocol":1}`.
+`GET /health` doit renvoyer `{"status":"ok","protocol":2}`.
 `:relay:installDist` produit aussi des scripts de lancement et les bibliothèques
 dans `relay/build/install/relay/`, sans nécessiter Gradle sur le serveur final.
 
@@ -66,11 +66,17 @@ copier tout son répertoire de données/volume, puis redémarrer. Tester une
 restauration dans un autre répertoire. Ne pas lancer deux instances sur ce volume.
 
 Les messages sont publics **aux utilisateurs du relais et du scope compatible**.
-L'opérateur voit leur texte, identité publique, coordonnées et l'adresse IP des
+L'opérateur voit leurs identifiants de phrases, votes, couleur, identité publique, coordonnées et l'adresse IP des
 connexions. La clé privée ne quitte jamais le poste du joueur. Le relais local
 ne collecte pas de pseudo Microsoft ni de position réelle.
 
-Pour une alpha contrôlée, l'opérateur peut retirer un message abusif après arrêt
-du service en supprimant son fichier UUID, puis redémarrer. Blocage/signalement,
-outils de modération, quotas anti-identités multiples et tests de charge restent
-nécessaires avant une ouverture publique. Voir le [protocole](PROTOCOL.md).
+La modération du contenu repose sur le catalogue fermé, validé côté relais.
+Aucun signalement ni envoi Mojang. Les votes ne déclenchent pas de suppression.
+Les limites par identité ne bloquent pas la création de nouvelles clés ; les
+essais de charge et protections globales restent à évaluer avant ouverture.
+Voir le [protocole](PROTOCOL.md).
+
+Le protocole v2 utilise un nouveau sous-répertoire `messages-v2`. Garder les
+anciennes données v1 à part : elles ne sont ni importées ni effacées. Si
+`MULTISOLO_DATA` était défini manuellement, choisir explicitement un répertoire
+v2 neuf avant de lancer ce build.

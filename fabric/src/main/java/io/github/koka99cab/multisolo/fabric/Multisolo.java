@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 /** World rules are scoped to explicitly created experience worlds. Network is opt-in. */
 public final class Multisolo implements ModInitializer {
     public static final String MOD_ID = "multisolo";
-    public static final int PROTOCOL_VERSION = 1;
+    public static final int PROTOCOL_VERSION = 2;
     private static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     @Override

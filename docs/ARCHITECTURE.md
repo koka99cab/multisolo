@@ -63,7 +63,21 @@ seed sauvegardée sont contrôlées avant d'activer les règles. Aucune donnée 
 spawn n'est remplacée. Une divergence exige une migration explicite.
 
 Le partage est réservé aux expériences solo marquées, au profil de mods vérifié
-et aux datapacks vanilla/Fabric. Les requêtes sont lancées à la demande du joueur,
+et aux datapacks vanilla/Fabric. Les publications et votes sont lancés à la demande du joueur ; les lectures
+sont rafraîchies toutes les dix secondes après consentement,
 hors thread du jeu. Désactiver ou changer de monde annule le travail en cours et
 efface les messages affichés. Le [protocole](PROTOCOL.md) décrit la frontière
 d'autorité du relais.
+
+## Panneaux vanilla
+
+`MessagePhrase` impose exactement quatre identifiants de catalogue ; `PhantomSign`
+ajoute face et couleur RGB. Le relais valide le même modèle. Les votes sont
+persistés séparément de la publication immuable, un vote par identité.
+
+`SignEditorSession` ajoute les contrôles à `AbstractSignEditScreen`, sans écran de
+composition séparé. Les mixins client bloquent la saisie libre en mode fantôme,
+changent uniquement l'état de rendu du texte et empêchent l'envoi d'un paquet
+vanilla depuis une consultation distante. Le mixin commun sauvegarde les
+métadonnées de l'auteur sur le vrai `SignBlockEntity`. Les raisons de chaque
+mixin sont dans le code et la [décision 0003](decisions/0003-vanilla-phantom-signs.md).

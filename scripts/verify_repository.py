@@ -55,7 +55,15 @@ def main():
     require(french.keys() == english.keys(), "FR/EN translations differ")
     for path in (ROOT / "fabric/src/client/java").rglob("*.java"):
         for key in re.findall(r'"(multisolo\.[a-z.]+)"', path.read_text(encoding="utf-8")):
+            if key.endswith("."):
+                continue  # Dynamic enum keys are checked against the closed catalog below.
             require(key in french, f"Missing UI translation: {key}")
+
+    catalog = (ROOT / "core/src/main/java/io/github/koka99cab/multisolo/core/message/MessagePhrase.java").read_text(encoding="utf-8")
+    entries = re.search(r"enum Line\s*\{([^}]+)\}", catalog).group(1)
+    for entry in entries.split(","):
+        key = "multisolo.phrase.line." + entry.strip().lower()
+        require(key in french and key in english, f"Missing catalog translation: {key}")
 
     for path in (ROOT / "core/src").rglob("*.java"):
         source = path.read_text(encoding="utf-8")

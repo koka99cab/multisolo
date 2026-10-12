@@ -22,11 +22,13 @@ Les cases décrivent du travail vérifiable. Elles n'annoncent aucune date.
 - [x] Test client automatisé : création, message, sauvegarde/rechargement et monde ordinaire.
 - [ ] Valider l'installation du JAR distribué seul sur un second profil/poste.
 - [ ] Choisir le VPS OVH et le domaine, tester le relais HTTPS entre deux machines.
-- [ ] Modération, blocage et signalement avant accès public ouvert.
+- [x] Écriture fermée : quatre lignes prédéfinies, validées côté relais, sans signalement.
+- [x] Menu du panneau vanilla, couleur hexadécimale et votes persistants.
+- [ ] Tests de charge et quotas globaux avant accès public ouvert.
 
 ## Après v0.1 — Présence asynchrone enrichie
 
-- [ ] Rendu des messages dans le monde, au-delà de leur lecture dans le menu.
+- [x] Rendu du texte sur un panneau vanilla local déjà posé, sans mutation distante.
 - [ ] Politique de conservation et expiration éventuelle avec les premiers retours.
 - [ ] Échos visuels sans collision ni influence sur le monde.
 - [ ] Première alpha fermée, retours sur intérêt du concept et fluidité.

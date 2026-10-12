@@ -8,7 +8,7 @@ public final class RelayMain {
     public static void main(String[] args) throws Exception {
         String bind = System.getenv().getOrDefault("MULTISOLO_BIND", "127.0.0.1");
         int port = Integer.parseInt(System.getenv().getOrDefault("MULTISOLO_PORT", "8787"));
-        Path data = Path.of(System.getenv().getOrDefault("MULTISOLO_DATA", "data/messages"));
+        Path data = Path.of(System.getenv().getOrDefault("MULTISOLO_DATA", "data/messages-v2"));
         RelayServer server = new RelayServer(new InetSocketAddress(bind, port), data);
         Runtime.getRuntime().addShutdownHook(new Thread(server::close));
         server.start();

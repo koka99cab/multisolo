@@ -18,7 +18,24 @@ import java.util.UUID;
 public final class MessageStore {
     private static final int MAX_MESSAGES = 10_000;
     private final Path directory;
-    private final Map<UUID, LocatedMessage> messages = new HashMap<>();
+    private final Map<UUID, StoredMessage> messages = new HashMap<>();
+    private record StoredMessage(int schemaVersion, LocatedMessage message, Map<String, Integer> votes) {
+        StoredMessage {
+            if (schemaVersion != 2) throw new IllegalArgumentException("Use a new v2 data directory; legacy free text is not imported");
+            java.util.Objects.requireNonNull(message);
+            votes = Map.copyOf(votes);
+            if (votes.size() > 1000) throw new IllegalArgumentException("Vote capacity exceeded");
+            votes.forEach((id, value) -> {
+                if (!id.matches("[a-f0-9]{64}") || (value != -1 && value != 1) || id.equals(message.authorId()))
+                    throw new IllegalArgumentException("Invalid persisted vote");
+            });
+        }
+        Protocol.MessageView view(String viewer) {
+            return new Protocol.MessageView(message,
+                    (int) votes.values().stream().filter(value -> value == 1).count(),
+                    (int) votes.values().stream().filter(value -> value == -1).count(), votes.getOrDefault(viewer, 0));
+        }
+    }
 
     public MessageStore(Path directory) throws IOException {
         this.directory = directory;
@@ -26,10 +43,11 @@ public final class MessageStore {
         try (var files = Files.list(directory)) {
             for (Path file : files.filter(path -> path.getFileName().toString().endsWith(".json")).toList()) {
                 try {
-                    if (Files.size(file) > Protocol.MAX_BODY_BYTES) throw new IOException("Oversized stored message");
-                    LocatedMessage message = Protocol.JSON.fromJson(Files.readString(file), LocatedMessage.class);
+                    if (Files.size(file) > Protocol.MAX_RESPONSE_BYTES) throw new IOException("Oversized stored message");
+                    StoredMessage stored = Protocol.JSON.fromJson(Files.readString(file), StoredMessage.class);
+                    LocatedMessage message = stored.message();
                     if (!file.getFileName().toString().equals(message.id() + ".json")
-                            || messages.putIfAbsent(message.id(), message) != null) {
+                            || messages.putIfAbsent(message.id(), stored) != null) {
                         throw new IOException("Invalid or duplicate message filename");
                     }
                     if (messages.size() > MAX_MESSAGES) throw new IOException("Store capacity exceeded");
@@ -39,38 +57,57 @@ public final class MessageStore {
     }
 
     public synchronized LocatedMessage publish(UUID id, String author, Protocol.Publish request, long now) throws IOException {
-        LocatedMessage existing = messages.get(id);
-        if (existing != null) {
+        StoredMessage previous = messages.get(id);
+        if (previous != null) {
+            LocatedMessage existing = previous.message();
             if (!existing.authorId().equals(author) || !existing.scope().equals(request.scope())
-                    || !existing.position().equals(request.position()) || !existing.text().equals(request.text())) {
+                    || !existing.position().equals(request.position()) || !existing.sign().equals(request.sign())) {
                 throw new ConflictException();
             }
             return existing;
         }
         if (messages.size() >= MAX_MESSAGES) throw new CapacityException();
-        LocatedMessage message = new LocatedMessage(id, author, request.scope(), request.position(), request.text(), now);
-        AtomicFiles.write(directory.resolve(id + ".json"), Protocol.JSON.toJson(message));
-        messages.put(id, message);
+        LocatedMessage message = new LocatedMessage(id, author, request.scope(), request.position(), request.sign(), now);
+        persist(new StoredMessage(2, message, Map.of()));
         return message;
     }
 
-    public synchronized List<LocatedMessage> nearby(CompatibilityKey scope, MessagePosition center) {
-        return messages.values().stream().filter(message -> scope.canShareWith(message.scope()))
-                .filter(message -> center.distanceSquared(message.position()) <= Protocol.RADIUS * Protocol.RADIUS)
-                .sorted(Comparator.comparingLong((LocatedMessage message) -> center.distanceSquared(message.position()))
-                        .thenComparing(LocatedMessage::createdAt).thenComparing(message -> message.id().toString()))
-                .limit(50).toList();
+    public synchronized List<Protocol.MessageView> nearby(CompatibilityKey scope, MessagePosition center, String viewer) {
+        return messages.values().stream().filter(stored -> scope.canShareWith(stored.message().scope()))
+                .filter(stored -> center.distanceSquared(stored.message().position()) <= Protocol.RADIUS * Protocol.RADIUS)
+                .sorted(Comparator.comparingLong((StoredMessage stored) -> center.distanceSquared(stored.message().position()))
+                        .thenComparing(stored -> stored.message().createdAt()).thenComparing(stored -> stored.message().id().toString()))
+                .limit(50).map(stored -> stored.view(viewer)).toList();
     }
 
     public synchronized boolean delete(UUID id, String author) throws IOException {
-        LocatedMessage message = messages.get(id);
-        if (message == null) return true;
+        StoredMessage stored = messages.get(id);
+        if (stored == null) return true;
+        LocatedMessage message = stored.message();
         if (!message.authorId().equals(author)) return false;
         Files.delete(directory.resolve(id + ".json"));
         messages.remove(id);
         return true;
     }
 
+    public synchronized void vote(UUID id, String voter, int value) throws IOException {
+        StoredMessage stored = messages.get(id);
+        if (stored == null) throw new MissingException();
+        if (stored.message().authorId().equals(voter)) throw new ForbiddenException();
+        if (value < -1 || value > 1) throw new IllegalArgumentException("Invalid vote");
+        Map<String, Integer> votes = new HashMap<>(stored.votes());
+        if (value == 0) votes.remove(voter); else votes.put(voter, value);
+        if (votes.size() > 1000) throw new CapacityException();
+        persist(new StoredMessage(2, stored.message(), votes));
+    }
+
+    private void persist(StoredMessage stored) throws IOException {
+        AtomicFiles.write(directory.resolve(stored.message().id() + ".json"), Protocol.JSON.toJson(stored));
+        messages.put(stored.message().id(), stored);
+    }
+
     public static final class ConflictException extends IOException {}
     public static final class CapacityException extends IOException {}
+    public static final class ForbiddenException extends IOException {}
+    public static final class MissingException extends IOException {}
 }

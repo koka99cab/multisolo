@@ -30,8 +30,10 @@ et les quatre modules Fabric API embarqués dans le JAR réellement produit.
 
 Ce test ouvre un vrai client et crée une nouvelle expérience depuis le bouton
 du menu. Il contrôle seed 0, difficulté verrouillée malgré un setter forcé,
-publication depuis le jeu, lecture par une seconde identité et désactivation.
-Il vérifie aussi la sauvegarde/reprise de l'expérience. Les captures vont dans
+partage depuis le menu du panneau vanilla posé, quatre lignes, refus de saisie
+libre, couleur de l’auteur, lecture et votes par une seconde identité. Il
+contrôle l’absence d’écriture depuis le menu de consultation et la désactivation.
+Il vérifie aussi la sauvegarde/reprise de l’expérience et des métadonnées du panneau. Les captures vont dans
 `fabric/build/run/clientGameTest/screenshots/`. Un GPU/contexte graphique compatible
 est nécessaire. Le profil est isolé dans `build/` ; aucune sauvegarde personnelle
 n'est utilisée. Les bibliothèques de test ne sont pas livrées aux joueurs.
@@ -51,6 +53,8 @@ garder `gameplay_ready` à `false` et ne pas annoncer de release complète.
 | Social désactivé / relais inaccessible | Monde jouable et sauvegardable sans connexion |
 | Message publié, relais arrêté puis redémarré | Même auteur, texte et coordonnées retrouvés |
 | Suppression par une autre identité | Refus `403`, message conservé |
+| Panneau ordinaire hors expérience | Menu et saisie vanilla, sans option fantôme |
+| Vote +1, -1, 0 puis redémarrage | Une voix par identité ; vote sur soi refusé |
 | Menu FR/EN et petite fenêtre | Boutons lisibles, brouillon conservé après erreur réseau |
 | Autre version, seed, révision, dimension ou worldgen | Aucun mélange de messages, échos ou sessions |
 | Invité : ramassage, dépôt, coffre, craft, XP, blocs, commandes | Refus côté serveur, y compris par paquets directs |

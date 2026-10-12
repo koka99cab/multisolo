@@ -3,6 +3,7 @@ package io.github.koka99cab.multisolo.network;
 import io.github.koka99cab.multisolo.core.experience.CompatibilityKey;
 import io.github.koka99cab.multisolo.core.message.LocatedMessage;
 import io.github.koka99cab.multisolo.core.message.MessagePosition;
+import io.github.koka99cab.multisolo.core.message.PhantomSign;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -40,13 +41,13 @@ public final class RelayClient implements AutoCloseable {
         }
     }
 
-    public LocatedMessage publish(UUID id, CompatibilityKey scope, MessagePosition position, String text)
+    public LocatedMessage publish(UUID id, CompatibilityKey scope, MessagePosition position, PhantomSign sign)
             throws IOException, InterruptedException, GeneralSecurityException {
         LocatedMessage message = Protocol.JSON.fromJson(request("PUT", Protocol.path(id),
-                Protocol.JSON.toJson(new Protocol.Publish(scope, position, text))), LocatedMessage.class);
+                Protocol.JSON.toJson(new Protocol.Publish(scope, position, sign))), LocatedMessage.class);
         if (!message.id().equals(id) || !message.authorId().equals(identity.id())
                 || !message.scope().equals(scope) || !message.position().equals(position)
-                || !message.text().equals(LocatedMessage.validateText(text))) {
+                || !message.sign().equals(sign)) {
             throw new IOException("Relay returned a different publication");
         }
         return message;
@@ -54,12 +55,21 @@ public final class RelayClient implements AutoCloseable {
 
     public List<LocatedMessage> nearby(CompatibilityKey scope, MessagePosition position)
             throws IOException, InterruptedException, GeneralSecurityException {
+        return nearbyViews(scope, position).stream().map(Protocol.MessageView::message).toList();
+    }
+
+    public List<Protocol.MessageView> nearbyViews(CompatibilityKey scope, MessagePosition position)
+            throws IOException, InterruptedException, GeneralSecurityException {
         Protocol.Messages result = Protocol.JSON.fromJson(request("GET", Protocol.query(scope, position), ""), Protocol.Messages.class);
-        if (result.messages().size() > 50 || result.messages().stream().anyMatch(message ->
-                !scope.canShareWith(message.scope()) || position.distanceSquared(message.position()) > Protocol.RADIUS * Protocol.RADIUS)) {
+        if (result.messages().size() > 50 || result.messages().stream().anyMatch(view ->
+                !scope.canShareWith(view.message().scope()) || position.distanceSquared(view.message().position()) > Protocol.RADIUS * Protocol.RADIUS)) {
             throw new IOException("Relay returned messages outside the requested scope");
         }
         return result.messages();
+    }
+
+    public void vote(UUID id, int value) throws IOException, InterruptedException, GeneralSecurityException {
+        request("PUT", Protocol.path(id) + "/vote", Protocol.JSON.toJson(new Protocol.Vote(value)));
     }
 
     public void delete(UUID id) throws IOException, InterruptedException, GeneralSecurityException {

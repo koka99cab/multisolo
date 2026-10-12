@@ -6,8 +6,9 @@ celui de Minecraft : la proposition initiale de spawn aléatoire a été abandon
 
 ## Trois formes de présence
 
-1. **Messages** : laisser une indication à une position ; la retrouver dans les
-   mondes compatibles. Prévoir signalement, masquage, expiration et limites de débit.
+1. **Panneaux fantômes** : partager quatre lignes prédéfinies depuis un panneau
+   vanilla réellement posé, avec couleur RGB et votes manuels. Le vocabulaire fermé
+   constitue la modération du contenu ; aucun signalement ni texte libre partagé.
 2. **Échos** : apercevoir une silhouette d'un autre joueur. Aucun accès à son
    inventaire, aucune collision ni interaction avec le monde.
 3. **Entraide** : demander de l'aide et accepter explicitement un invité temporaire.
@@ -64,5 +65,20 @@ un relais et leurs coûts devront être évalués avant de promettre « inviter 
 Ce dépôt ne prétend pas résoudre ces points avec un simple client HTTP.
 
 Le relais vérifie une identité cryptographique et isole les groupes compatibles.
-Ses premières limites ne remplacent pas une modération publique. Une panne du
+Le vocabulaire fermé limite le contenu possible, sans empêcher le spam ni les
+indications trompeuses. Une panne du
 service n'empêche jamais le chargement ou la sauvegarde d'un monde solo.
+
+## Un panneau posé, un contenu partagé
+
+Le menu reste celui du panneau vanilla, normal ou suspendu. L'option fantôme
+existe seulement dans une expérience Multisolo compatible. Chaque face peut être
+partagée séparément. Le panneau de l'auteur conserve son bloc, sa collision et
+les règles vanilla ; ses métadonnées Multisolo sont sauvegardées avec le bloc.
+
+Aucune copie de bloc n'est placée dans les autres sauvegardes. Le rendu du texte
+partagé s'applique à un panneau local vierge déjà posé au même XYZ, sur la même face.
+Le texte local non vide est prioritaire. Le mode de lecture et les votes utilisent
+le même menu vanilla et n'envoient aucun paquet d'édition au serveur Minecraft.
+Si plusieurs messages correspondent, le score des votes puis le plus récent
+choisissent l'affichage ; le menu proche conserve les autres résultats.

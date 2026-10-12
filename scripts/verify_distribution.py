@@ -30,6 +30,8 @@ def main():
         experience = json.loads(jar.read("data/multisolo/experiences/origin.json"))
         require(experience["seed"] == "0" and experience["revision"] == 2, "Incorrect experience in JAR")
         require("io/github/koka99cab/multisolo/network/NetworkIdentity.class" in names, "Network is missing")
+        require("multisolo.client.mixins.json" in names, "Client sign mixins are missing")
+        require("io/github/koka99cab/multisolo/fabric/client/SignEditorSession.class" in names, "Vanilla sign editor integration is missing")
         nested_ids = set()
         import io
         for entry in manifest.get("jars", []):

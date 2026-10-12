@@ -28,7 +28,7 @@ dans le menu Multisolo ; les règles d'une expérience restent communes.
 
 ## État réel du projet
 
-**v0.1 — Connected Solitude**, en développement (`0.1.0-dev.2`).
+**v0.1 — Connected Solitude**, en développement (`0.1.0-dev.3`).
 La seed de cette première expérience est **`0`**. Chaque joueur crée une
 sauvegarde indépendante, en survie normale verrouillée, avec le spawn vanilla.
 
@@ -36,8 +36,8 @@ sauvegarde indépendante, en survie normale verrouillée, avec le spawn vanilla.
 | --- | --- |
 | Création d'une expérience seed 0 depuis le menu | Validation complète du JAR distribué |
 | Menu FR/EN, consentement et fonctionnement hors ligne | Hébergement HTTPS du relais (VPS OVH envisagé) |
-| Identité réseau cryptographique persistante | Modération, blocage et signalement avant ouverture publique |
-| Messages persistants géolocalisés, relais et tests réseau | Silhouettes et entraide, après la v0.1 |
+| Identité réseau cryptographique persistante | Essais du relais en conditions publiques |
+| Panneaux vanilla partagés, vocabulaire fermé, couleur et votes | Silhouettes et entraide, après la v0.1 |
 | CI, veille des versions et guide pour les bots | Portages vérifiés sur les autres versions Java 26.x |
 
 Le [contrat de la v0.1](docs/releases/0.1-connected-solitude.md) décrit les limites
@@ -65,11 +65,25 @@ le prérequis de lancement. Pour les essais de cette alpha, utiliser un profil
 avec Multisolo seul ; les autres mods ne sont pas encore validés.
 
 Dans l'accueil : **Multisolo → Créer Connected Solitude — seed 0**.
-Pour le social : renseigner l'adresse du relais, activer les messages après
-lecture du consentement, puis **Pause → Multisolo → Messages proches**.
-« Laisser ici » enregistre le texte à la position actuelle ; « Lire autour de
-moi » retrouve les messages dans un rayon de 128 blocs. Un auteur peut supprimer
-ses propres messages. Le texte se lit dans le menu, sans inscription 3D pour l'instant.
+Pour le social : choisir sa couleur **#RRGGBB**, renseigner le relais et activer
+le partage après lecture du consentement. Dans une partie Multisolo, **poser un
+panneau vanilla**, puis choisir « Panneau fantôme : oui » dans son menu habituel.
+Composer ses **quatre lignes prédéfinies** avec les flèches, puis « Partager ce
+panneau ». Échap annule le brouillon ; un panneau ordinaire garde son texte libre local.
+
+Le bloc posé reste un panneau Minecraft normal. Aucun bloc n'est créé à distance.
+Chez un autre joueur, la lecture dans le monde utilise un **panneau vanilla déjà
+posé, vierge, aux mêmes coordonnées et sur la même face**. Son texte sauvegardé
+reste intact. Accroupi + clic droit, mains vides, ouvre le menu vanilla en lecture
+seule avec les votes pour / contre. Le menu « Panneaux proches » permet aussi de
+consulter les messages, même sans panneau correspondant. Recliquer un vote l'annule ;
+un auteur peut supprimer son partage, sans casser son panneau.
+
+Le partage porte uniquement des identifiants de phrases prédéfinies ; le relais
+refuse le texte libre. Aucun message social n'est envoyé au chat et aucun
+signalement Mojang ou Multisolo n'est ajouté. La couleur de l'auteur accompagne
+le panneau. Les lectures proches se rafraîchissent toutes les dix secondes quand
+le social est activé dans une expérience compatible.
 
 ## Commencer à développer
 
